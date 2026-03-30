@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DokuCoach – Deine Dokumente. Endlich verständlich.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a18;
+  --paper: #f5f2eb;
+  --accent: #c8401a;
+  --accent-light: rgba(200,64,26,0.08);
+  --accent-mid: rgba(200,64,26,0.15);
+  --soft: #e8e4da;
+  --muted: #7a7870;
+  --card: #ffffff;
+  --ink-90: rgba(26,26,24,0.9);
+  --ink-60: rgba(26,26,24,0.6);
+  --ink-30: rgba(26,26,24,0.3);
+  --ink-10: rgba(26,26,24,0.06);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  color: var(--ink);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+/* ── UTILS ── */
+.serif { font-family: 'DM Serif Display', serif; font-weight: 400; }
+.accent { color: var(--accent); }
+.container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+.section { padding: 96px 0; }
+.section-sm { padding: 64px 0; }
+
+/* ── NAVIGATION ── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(245,242,235,0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--ink-10);
+  transition: box-shadow 0.2s;
+}
+nav.scrolled { box-shadow: 0 2px 20px rgba(0,0,0,0.06); }
+.nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.nav-logo-mark {
+  width: 32px; height: 32px;
+  background: var(--ink);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-logo-mark svg { width: 18px; height: 18px; }
+.nav-logo-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+.nav-links a {
+  text-decoration: none;
+  color: var(--ink-60);
+  font-size: 14px;
+  font-weight: 400;
+  transition: color 0.15s;
+}
+.nav-links a:hover { color: var(--ink); }
+.nav-cta {
+  background: var(--accent);
+  color: white !important;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  box-shadow: 0 4px 14px rgba(200,64,26,0.28);
+  transition: transform 0.15s, box-shadow 0.15s !important;
+}
+.nav-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(200,64,26,0.35) !important;
+}
+.nav-mobile-cta { display: none; }
+
+/* ── HERO ── */
+.hero {
+  padding: 160px 0 96px;
+  overflow: hidden;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(200,64,26,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+  background: var(--accent-light);
+  border: 1px solid var(--accent-mid);
+  padding: 6px 12px;
+  border-radius: 20px;
+  margin-bottom: 24px;
+  letter-spacing: 0.01em;
+}
+.hero-eyebrow-dot {
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+.hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(38px, 5vw, 60px);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 24px;
+  color: var(--ink);
+}
+.hero h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+.hero-sub {
+  font-size: clamp(16px, 1.8vw, 18px);
+  color: var(--ink-60);
+  max-width: 480px;
+  line-height: 1.65;
+  margin-bottom: 40px;
+}
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: white;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 6px 20px rgba(200,64,26,0.32);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(200,64,26,0.4);
+}
+.btn-primary svg { width: 18px; height: 18px; }
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink-60);
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 400;
+  text-decoration: none;
+  border: 1px solid var(--ink-30);
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.btn-secondary:hover {
+  border-color: var(--ink-60);
+  color: var(--ink);
+  background: var(--ink-10);
+}
+.hero-trust {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 28px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.hero-trust-dots {
+  display: flex;
+  gap: 4px;
+}
+.hero-trust-dots span {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--soft);
+  border: 2px solid var(--paper);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  margin-left: -6px;
+  color: var(--ink-60);
+}
+.hero-trust-dots span:first-child { margin-left: 0; }
+
+/* Hero visual */
+.hero-visual {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+}
+.hero-mockup {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+  overflow: hidden;
+  border: 1px solid var(--ink-10);
+}
+.mockup-header {
+  background: var(--ink);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mockup-header-title {
+  font-family: 'DM Serif Display', serif;
+  color: white;
+  font-size: 15px;
+}
+.mockup-header-icon {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.mockup-header-icon svg { width: 16px; height: 16px; }
+.mockup-body { padding: 20px; }
+.mockup-doc-card {
+  background: var(--paper);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mockup-doc-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+.mockup-doc-info { flex: 1; min-width: 0; }
+.mockup-doc-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mockup-doc-meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.mockup-badge {
+  font-size: 10px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.badge-ok { background: #e6f4ed; color: #2d7a4f; }
+.badge-new { background: var(--accent-light); color: var(--accent); }
+.mockup-chat-bubble {
+  background: var(--ink);
+  color: white;
+  border-radius: 14px 14px 14px 4px;
+  padding: 12px 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 16px;
+  position: relative;
+}
+.mockup-chat-bubble::before {
+  content: '';
+  position: absolute;
+  top: -8px; left: 16px;
+  width: 0; height: 0;
+}
+.mockup-chat-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 6px;
+}
+.mockup-chat-label span {
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+.mockup-highlight { color: var(--accent); font-weight: 500; }
+
+/* floating card */
+.hero-float-card {
+  position: absolute;
+  bottom: -16px;
+  left: -32px;
+  background: white;
+  border-radius: 14px;
+  padding: 14px 18px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05);
+  border: 1px solid var(--ink-10);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+  animation: floatUp 3s ease-in-out infinite;
+}
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.float-card-icon {
+  width: 40px; height: 40px;
+  background: var(--accent-light);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.float-card-text { font-size: 12px; color: var(--ink-60); }
+.float-card-num { font-size: 22px; font-weight: 600; color: var(--ink); line-height: 1; }
+
+/* ── STAT BAR ── */
+.stat-bar {
+  background: var(--ink);
+  padding: 48px 0;
+}
+.stat-bar-inner {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+.stat-item {
+  text-align: center;
+  padding: 0 32px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(40px, 5vw, 56px);
+  color: white;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.stat-num span { color: var(--accent); }
+.stat-label {
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
+  line-height: 1.4;
+  max-width: 220px;
+  margin: 0 auto;
+}
+.stat-source {
+  font-size: 11px;
+  color: rgba(255,255,255,0.3);
+  margin-top: 8px;
+}
+
+/* ── PROBLEM ── */
+.problem-section { background: var(--paper); }
+.section-eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 16px;
+}
+.section-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(28px, 4vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  max-width: 600px;
+}
+.section-sub {
+  font-size: 17px;
+  color: var(--ink-60);
+  max-width: 560px;
+  line-height: 1.65;
+  margin-bottom: 48px;
+}
+.feeling-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 48px;
+}
+.feeling-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--ink-10);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.feeling-card:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+.feeling-emoji { font-size: 28px; margin-bottom: 12px; }
+.feeling-quote {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.feeling-quote em { color: var(--accent); font-style: italic; }
+.feeling-source {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── SOLUTION / FEATURES ── */
+.solution-section { background: var(--soft); }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+  margin-top: 56px;
+}
+.feature-card {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  border: 1px solid var(--ink-10);
+  transition: box-shadow 0.2s;
+}
+.feature-card:hover { box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
+.feature-icon {
+  width: 48px; height: 48px;
+  background: var(--accent-light);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  color: var(--accent);
+}
+.feature-icon svg { width: 24px; height: 24px; }
+.feature-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+.feature-text {
+  font-size: 15px;
+  color: var(--ink-60);
+  line-height: 1.65;
+}
+
+/* ── HOW IT WORKS ── */
+.how-section { background: var(--paper); }
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-top: 64px;
+  position: relative;
+}
+.steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: calc(16.66% + 16px);
+  right: calc(16.66% + 16px);
+  height: 1px;
+  background: var(--ink-10);
+}
+.step-item { text-align: center; position: relative; }
+.step-num {
+  width: 56px; height: 56px;
+  background: white;
+  border: 2px solid var(--soft);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--accent);
+  margin: 0 auto 24px;
+  position: relative;
+  z-index: 1;
+}
+.step-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+.step-text {
+  font-size: 14px;
+  color: var(--ink-60);
+  line-height: 1.6;
+}
+
+/* ── QUOTES ── */
+.quotes-section { background: var(--ink); padding: 80px 0; }
+.quotes-header { text-align: center; margin-bottom: 48px; }
+.quotes-header .section-eyebrow { color: rgba(255,255,255,0.5); }
+.quotes-header .section-title { color: white; margin: 0 auto; }
+.quotes-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.quote-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 28px;
+}
+.quote-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  color: white;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.quote-text em { color: var(--accent); font-style: italic; }
+.quote-attr {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+}
+.quote-stars { color: var(--accent); font-size: 13px; margin-bottom: 12px; }
+
+/* ── SECURITY ── */
+.security-section {
+  background: var(--paper);
+  border-top: 1px solid var(--soft);
+}
+.security-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+.security-badges {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.security-badge {
+  background: white;
+  border-radius: 14px;
+  padding: 20px;
+  border: 1px solid var(--ink-10);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.security-badge-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.security-badge-text { font-size: 13px; color: var(--ink-60); line-height: 1.5; }
+.security-badge-text strong { color: var(--ink); display: block; margin-bottom: 2px; font-weight: 500; }
+
+/* ── FINAL CTA ── */
+.cta-section {
+  background: var(--accent);
+  padding: 96px 0;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+.cta-section::before {
+  content: '';
+  position: absolute;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 800px; height: 800px;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.cta-section .section-title {
+  color: white;
+  margin: 0 auto 16px;
+}
+.cta-section .section-sub {
+  color: rgba(255,255,255,0.75);
+  margin: 0 auto 40px;
+}
+.btn-white {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  color: var(--accent);
+  padding: 16px 32px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn-white:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+.cta-note {
+  margin-top: 20px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+}
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink);
+  padding: 48px 0 32px;
+}
+.footer-inner {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 40px;
+}
+.footer-brand {}
+.footer-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.footer-logo-mark {
+  width: 30px; height: 30px;
+  background: var(--accent);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+}
+.footer-logo-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  color: white;
+}
+.footer-tagline {
+  font-size: 13px;
+  color: rgba(255,255,255,0.4);
+  line-height: 1.6;
+  max-width: 260px;
+}
+.footer-col-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 16px;
+}
+.footer-links { list-style: none; }
+.footer-links li { margin-bottom: 10px; }
+.footer-links a {
+  text-decoration: none;
+  font-size: 14px;
+  color: rgba(255,255,255,0.5);
+  transition: color 0.15s;
+}
+.footer-links a:hover { color: white; }
+.footer-bottom {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footer-copy { font-size: 12px; color: rgba(255,255,255,0.3); }
+.footer-legal {
+  display: flex;
+  gap: 20px;
+}
+.footer-legal a {
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer-legal a:hover { color: rgba(255,255,255,0.6); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 960px) {
+  .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+  .hero-visual { justify-content: center; }
+  .hero-float-card { left: 16px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .security-inner { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 720px) {
+  .section { padding: 64px 0; }
+  .feeling-grid { grid-template-columns: 1fr; }
+  .stat-bar-inner { grid-template-columns: 1fr; gap: 32px; }
+  .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 32px; }
+  .stat-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .steps-grid { grid-template-columns: 1fr; gap: 32px; }
+  .steps-grid::before { display: none; }
+  .quotes-grid { grid-template-columns: 1fr; }
+  .security-badges { grid-template-columns: 1fr; }
+  .footer-inner { grid-template-columns: 1fr; gap: 32px; }
+  .footer-bottom { flex-direction: column; gap: 12px; text-align: center; }
+  .nav-links { display: none; }
+  .nav-mobile-cta { display: inline-flex; }
+}
+
+/* ── SCROLL REVEAL ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+</style>
+</head>
+<body>
+
+<!-- NAVIGATION -->
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">
+      <div class="nav-logo-mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+          <polyline points="10 9 9 9 8 9"/>
+        </svg>
+      </div>
+      <span class="nav-logo-name">DokuCoach</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#problem">Das Problem</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#wie-es-funktioniert">So geht's</a></li>
+      <li><a href="dokucoach-prototype.html" class="nav-cta">Demo starten →</a></li>
+    </ul>
+    <a href="dokucoach-prototype.html" class="btn-primary nav-mobile-cta" style="font-size:14px;padding:10px 18px;">Demo →</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-eyebrow-dot"></span>
+          KI-gestützter Dokumenten-Assistent
+        </div>
+        <h1>
+          Deine Dokumente.<br>
+          <em>Endlich verständlich.</em>
+        </h1>
+        <p class="hero-sub">
+          DokuCoach übersetzt Versicherungsverträge, Behördenbriefe und Polizzen in klare Sprache – und beantwortet deine Fragen dazu. Ohne Fachchinesisch. Ohne Stress.
+        </p>
+        <div class="hero-actions">
+          <a href="dokucoach-prototype.html" class="btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Demo ansehen
+          </a>
+          <a href="#wie-es-funktioniert" class="btn-secondary">Wie es funktioniert</a>
+        </div>
+        <div class="hero-trust">
+          <div class="hero-trust-dots">
+            <span>👤</span><span>👤</span><span>👤</span><span>👤</span><span>👤</span>
+          </div>
+          &nbsp;Bereits von über 20 Testerinnen und Testern ausprobiert
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-mockup">
+          <div class="mockup-header">
+            <div class="mockup-header-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <span class="mockup-header-title">Meine Dokumente</span>
+          </div>
+          <div class="mockup-body">
+            <div class="mockup-doc-card">
+              <div class="mockup-doc-icon">🏠</div>
+              <div class="mockup-doc-info">
+                <div class="mockup-doc-name">Haushaltsversicherung 2024</div>
+                <div class="mockup-doc-meta">Analysiert · 18 Seiten</div>
+              </div>
+              <span class="mockup-badge badge-ok">✓ OK</span>
+            </div>
+            <div class="mockup-doc-card">
+              <div class="mockup-doc-icon">📋</div>
+              <div class="mockup-doc-info">
+                <div class="mockup-doc-name">Mietvertrag Hauptwohnsitz</div>
+                <div class="mockup-doc-meta">Analysiert · 32 Seiten</div>
+              </div>
+              <span class="mockup-badge badge-ok">✓ OK</span>
+            </div>
+            <div class="mockup-doc-card" style="border: 1.5px solid rgba(200,64,26,0.2); background: #fdf8f6;">
+              <div class="mockup-doc-icon">🏥</div>
+              <div class="mockup-doc-info">
+                <div class="mockup-doc-name">Krankenzusatzversicherung</div>
+                <div class="mockup-doc-meta">Neu hochgeladen</div>
+              </div>
+              <span class="mockup-badge badge-new">Neu</span>
+            </div>
+            <div class="mockup-chat-label">
+              <span></span> DokuCoach antwortet
+            </div>
+            <div class="mockup-chat-bubble">
+              Deine Selbstbehaltsgrenze liegt bei <span class="mockup-highlight">€ 200 pro Jahr</span>. Psychotherapie ist <span class="mockup-highlight">bis 80 % gedeckt</span> – du musst das aber vorab beantragen. Soll ich die genaue Klausel zeigen?
+            </div>
+          </div>
+        </div>
+        <div class="hero-float-card">
+          <div class="float-card-icon">⚡</div>
+          <div>
+            <div class="float-card-num">32 Sek.</div>
+            <div class="float-card-text">Ø bis zur ersten Antwort</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STAT BAR -->
+<div class="stat-bar">
+  <div class="stat-bar-inner">
+    <div class="stat-item reveal">
+      <div class="stat-num"><span>67</span> %</div>
+      <div class="stat-label">haben keinen vollständigen Überblick über ihre Versicherungen</div>
+      <div class="stat-source">Eigene Befragung, n=21</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-1">
+      <div class="stat-num"><span>76</span> %</div>
+      <div class="stat-label">würden DokuCoach sofort nutzen oder sind offen dafür</div>
+      <div class="stat-source">Eigene Befragung, n=21</div>
+    </div>
+    <div class="stat-item reveal reveal-delay-2">
+      <div class="stat-num">4 <span style="font-size:0.55em">von 21</span></div>
+      <div class="stat-label">hatten am Befragungstag ein ungeöffnetes Dokument zu Hause</div>
+      <div class="stat-source">Eigene Befragung, n=21</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="section problem-section" id="problem">
+  <div class="container">
+    <p class="section-eyebrow">Das Problem</p>
+    <h2 class="section-title">Wann hast du zuletzt einen Brief ungeöffnet liegengelassen?</h2>
+    <p class="section-sub">
+      Versicherungsdokumente, Mietverträge, Behördenbescheide – wir alle haben sie. Aber kaum jemand versteht sie wirklich. Das ist kein Wissensdefizit. Das ist ein Designproblem.
+    </p>
+    <div class="feeling-grid">
+      <div class="feeling-card reveal">
+        <div class="feeling-emoji">😤</div>
+        <div class="feeling-quote">„<em>Keine Zeit</em> und keinen Bock, mich durch 40 Seiten zu kämpfen."</div>
+        <div class="feeling-source">— Umfrage-Teilnehmerin, 34</div>
+      </div>
+      <div class="feeling-card reveal reveal-delay-1">
+        <div class="feeling-emoji">😰</div>
+        <div class="feeling-quote">„Ich <em>versteh's einfach nicht</em> und frag dann meinen Vater."</div>
+        <div class="feeling-source">— Umfrage-Teilnehmer, 28</div>
+      </div>
+      <div class="feeling-card reveal reveal-delay-2">
+        <div class="feeling-emoji">😬</div>
+        <div class="feeling-quote">„Ich hab Angst, dass ich <em>etwas übersehe</em> – aber weiß nicht wo anfangen."</div>
+        <div class="feeling-source">— Umfrage-Teilnehmerin, 41</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES / SOLUTION -->
+<section class="section solution-section" id="features">
+  <div class="container">
+    <p class="section-eyebrow">Was DokuCoach kann</p>
+    <h2 class="section-title">Dein persönlicher Experte für alle Dokumente.</h2>
+    <p class="section-sub">
+      DokuCoach liest, analysiert und erklärt – auf dein Niveau, in deiner Sprache. Keine Allgemeinaussagen, sondern Antworten über <em>deine</em> Verträge.
+    </p>
+    <div class="features-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">Dokumente verstehen</h3>
+        <p class="feature-text">Lade jeden Vertrag, jede Polizze, jeden Behördenbrief hoch. DokuCoach extrahiert die wichtigsten Punkte und erklärt dir in klarer Sprache, was drin steht.</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">Fragen stellen</h3>
+        <p class="feature-text">„Was ist mein Selbstbehalt?" „Bin ich bei Fahrraddiebstahl versichert?" Stell jede Frage – DokuCoach antwortet mit Quellenangabe direkt aus deinem Dokument.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">Dein digitaler Tresor</h3>
+        <p class="feature-text">Alle deine Dokumente an einem Ort – sortiert, durchsuchbar, immer dabei. Nie wieder wühlen. Nie wieder auf einen Familienmenschen angewiesen sein, der „das alles kennt".</p>
+      </div>
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+        </div>
+        <h3 class="feature-title">Qualität, der du vertrauen kannst</h3>
+        <p class="feature-text">DokuCoach informiert – und sagt klar, wann du einen Experten brauchst. Geprüfte Analyse, transparente Quellen. KI als Werkzeug, nicht als Ersatz für Verstand.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section how-section" id="wie-es-funktioniert">
+  <div class="container" style="text-align:center;">
+    <p class="section-eyebrow">So einfach geht's</p>
+    <h2 class="section-title" style="margin: 0 auto 16px;">In drei Schritten zum Durchblick.</h2>
+    <p class="section-sub" style="margin: 0 auto 0;">Kein Kurs, kein Handbuch. Einfach hochladen und verstehen.</p>
+    <div class="steps-grid">
+      <div class="step-item reveal">
+        <div class="step-num">1</div>
+        <h3 class="step-title">Dokument hochladen</h3>
+        <p class="step-text">PDF, Foto oder Scan – DokuCoach versteht alle gängigen Formate. Einfach hochladen, fertig.</p>
+      </div>
+      <div class="step-item reveal reveal-delay-1">
+        <div class="step-num">2</div>
+        <h3 class="step-title">Analyse in Sekunden</h3>
+        <p class="step-text">DokuCoach liest das Dokument, erkennt die wichtigsten Klauseln und bereitet eine verständliche Zusammenfassung vor.</p>
+      </div>
+      <div class="step-item reveal reveal-delay-2">
+        <div class="step-num">3</div>
+        <h3 class="step-title">Fragen stellen</h3>
+        <p class="step-text">Stell alles, was du immer wissen wolltest. Und wenn du magst: speicher das Dokument in deinen Tresor.</p>
+      </div>
+    </div>
+    <div style="margin-top: 56px;">
+      <a href="dokucoach-prototype.html" class="btn-primary" style="display:inline-flex;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+        Demo selbst ausprobieren
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTES -->
+<section class="quotes-section">
+  <div class="container">
+    <div class="quotes-header">
+      <p class="section-eyebrow">Was andere sagen</p>
+      <h2 class="section-title">Echte Reaktionen auf ein echtes Problem.</h2>
+    </div>
+    <div class="quotes-grid">
+      <div class="quote-card reveal">
+        <div class="quote-stars">★★★★★</div>
+        <p class="quote-text">„Ich wusste nicht mal, was in meiner Haushaltsversicherung drinsteckt. Ich hab sie <em>nie wirklich gelesen</em>. Das hier ist der erste Schritt."</p>
+        <div class="quote-attr">Umfrage-Teilnehmerin, Wien · sofort dabei</div>
+      </div>
+      <div class="quote-card reveal reveal-delay-1">
+        <div class="quote-stars">★★★★★</div>
+        <p class="quote-text">„Ich frag meinen Vater. Der kennt das alles. Aber <em>er wird nicht jünger</em> und ich werd's nie lernen, wenn ich's nicht selbst versteh."</p>
+        <div class="quote-attr">Umfrage-Teilnehmer, 31 · offen dafür</div>
+      </div>
+      <div class="quote-card reveal reveal-delay-2">
+        <div class="quote-stars">★★★★★</div>
+        <p class="quote-text">„Das Wichtigste wäre mir, dass ich <em>wirklich verstehe</em> was drin steht – und nicht nur eine Zusammenfassung bekomme."</p>
+        <div class="quote-attr">Umfrage-Teilnehmerin, 38 · sofort dabei</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="section security-section">
+  <div class="container">
+    <div class="security-inner">
+      <div>
+        <p class="section-eyebrow">Vertrauen & Sicherheit</p>
+        <h2 class="section-title">Deine Daten gehören dir. Punkt.</h2>
+        <p class="section-sub" style="margin-bottom: 0;">
+          62 % unserer Tester nannten Qualität und Verlässlichkeit als ihre größte Anforderung – nicht Preis, nicht Design. Diesen Anspruch nehmen wir ernst.
+        </p>
+      </div>
+      <div class="security-badges">
+        <div class="security-badge reveal">
+          <div class="security-badge-icon">🇦🇹</div>
+          <div class="security-badge-text">
+            <strong>DSGVO-konform</strong>
+            Datenspeicherung ausschließlich in der EU. Österreichisches Recht.
+          </div>
+        </div>
+        <div class="security-badge reveal reveal-delay-1">
+          <div class="security-badge-icon">🔒</div>
+          <div class="security-badge-text">
+            <strong>Ende-zu-Ende verschlüsselt</strong>
+            Deine Dokumente sind nur für dich sichtbar. Immer.
+          </div>
+        </div>
+        <div class="security-badge reveal reveal-delay-2">
+          <div class="security-badge-icon">💡</div>
+          <div class="security-badge-text">
+            <strong>Informieren, nicht beraten</strong>
+            DokuCoach ersetzt keine Rechtsberatung – und sagt das klar.
+          </div>
+        </div>
+        <div class="security-badge reveal reveal-delay-3">
+          <div class="security-badge-icon">🤝</div>
+          <div class="security-badge-text">
+            <strong>Geprüfte Qualität</strong>
+            Alle Inhalte mit Quellenangabe direkt aus deinem Dokument.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="cta-section">
+  <div class="container">
+    <p class="section-eyebrow" style="color:rgba(255,255,255,0.6);">Jetzt ausprobieren</p>
+    <h2 class="section-title" style="color:white; max-width:640px; margin:0 auto 16px;">Kein Bock mehr auf dieses Gefühl?</h2>
+    <p class="section-sub" style="color:rgba(255,255,255,0.75); max-width:480px; margin:0 auto 40px;">
+      Sieh selbst, wie DokuCoach funktioniert. Die interaktive Demo zeigt dir den gesamten Flow – vom Upload bis zur Antwort.
+    </p>
+    <a href="dokucoach-prototype.html" class="btn-white">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      Demo starten
+    </a>
+    <p class="cta-note">Keine Registrierung. Keine Kreditkarte. Einfach ausprobieren.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="footer-logo-mark">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <span class="footer-logo-name">DokuCoach</span>
+        </div>
+        <p class="footer-tagline">Deine Dokumente. Endlich verständlich. Endlich auf deiner Seite.</p>
+      </div>
+      <div>
+        <p class="footer-col-title">Produkt</p>
+        <ul class="footer-links">
+          <li><a href="#features">Features</a></li>
+          <li><a href="#wie-es-funktioniert">So funktioniert's</a></li>
+          <li><a href="dokucoach-prototype.html">Demo ansehen</a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="footer-col-title">Rechtliches</p>
+        <ul class="footer-links">
+          <li><a href="#">Datenschutz</a></li>
+          <li><a href="#">AGB</a></li>
+          <li><a href="#">Impressum</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-copy">© 2026 DokuCoach. Alle Rechte vorbehalten.</p>
+      <div class="footer-legal">
+        <a href="#">Datenschutz</a>
+        <a href="#">Impressum</a>
+        <a href="#">Kontakt</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Nav scroll effect
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 20);
+});
+
+// Scroll reveal
+const revealEls = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+revealEls.forEach(el => observer.observe(el));
+
+// Hero elements reveal immediately
+document.querySelectorAll('.hero-content > *, .hero-visual').forEach((el, i) => {
+  setTimeout(() => el.style.opacity = '1', 100 + i * 80);
+});
+</script>
+</body>
+</html>
