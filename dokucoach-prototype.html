@@ -1,1 +1,1058 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DokuCoach – Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a18;
+  --paper: #f5f2eb;
+  --accent: #c8401a;
+  --soft: #e8e4da;
+  --muted: #7a7870;
+  --success: #2d7a4f;
+  --warn-bg: #fdf3e3;
+  --warn-fg: #9a6012;
+  --card: #ffffff;
+  --frame-w: 390px;
+  --frame-h: 844px;
+}
 
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  background: #111110;
+  overscroll-behavior: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── DESKTOP BACKGROUND ── */
+.desktop-bg {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 30% 40%, rgba(200,64,26,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 70%, rgba(200,64,26,0.06) 0%, transparent 50%),
+              #0e0e0d;
+  z-index: 0;
+}
+.desktop-label {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.2); font-family: 'DM Sans', sans-serif;
+  z-index: 1; pointer-events: none;
+}
+
+/* ── DEVICE FRAME (desktop) ── */
+.device-wrap {
+  position: relative; z-index: 2;
+  width: var(--frame-w);
+  height: var(--frame-h);
+  border-radius: 48px;
+  background: var(--paper);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.1),
+    0 0 0 10px #1c1c1a,
+    0 0 0 12px rgba(255,255,255,0.06),
+    0 40px 100px rgba(0,0,0,0.7),
+    0 8px 20px rgba(0,0,0,0.5);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+/* Notch */
+.device-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 34px;
+  background: #1c1c1a;
+  border-radius: 0 0 22px 22px;
+  z-index: 300;
+}
+
+/* ── APP SHELL ── */
+#app {
+  width: 100%; height: 100%;
+  background: var(--paper);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ── STATUS BAR ── */
+.status-bar {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 50px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 0 24px 8px;
+  z-index: 250;
+  pointer-events: none;
+}
+.status-bar.dark { color: var(--paper); }
+.status-bar.light { color: var(--ink); }
+.sb-time { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; }
+.sb-icons { display: flex; align-items: center; gap: 5px; }
+.sb-icons svg { width: 16px; height: 16px; }
+
+/* ── SCREENS ── */
+.screen {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  background: var(--paper);
+  transition: transform 0.32s cubic-bezier(0.4,0,0.2,1), opacity 0.32s ease;
+  will-change: transform;
+}
+.screen.hidden         { transform: translateX(100%);  opacity: 0;   pointer-events: none; }
+.screen.active         { transform: translateX(0);     opacity: 1;   pointer-events: auto; }
+.screen.gone           { transform: translateX(-100%); opacity: 0;   pointer-events: none; }
+.screen.no-anim        { transition: none; }
+
+.scroll-view { flex: 1; overflow-y: auto; padding-bottom: 88px; overscroll-behavior: contain; }
+.scroll-view::-webkit-scrollbar { display: none; }
+
+/* ── SPLASH ── */
+#screen-splash {
+  background: var(--ink);
+  align-items: center; justify-content: center;
+}
+.splash-logo { text-align: center; }
+.splash-icon {
+  width: 72px; height: 72px; border-radius: 20px;
+  background: var(--accent); margin: 0 auto 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  animation: splashPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+}
+.splash-name {
+  font-family: 'DM Serif Display', serif; font-size: 32px; color: var(--paper);
+  animation: splashFade 0.5s ease 0.5s both;
+}
+.splash-tag {
+  font-size: 13px; color: #5a5854; margin-top: 6px;
+  animation: splashFade 0.5s ease 0.7s both;
+}
+@keyframes splashPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes splashFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: var(--ink);
+  display: flex;
+  border-top: 1px solid rgba(255,255,255,0.07);
+  z-index: 200;
+  padding-bottom: 8px;
+  transition: transform 0.3s ease;
+}
+.bottom-nav.hidden { transform: translateY(100%); }
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 10px 4px 6px; gap: 4px;
+  cursor: pointer; color: #4a4846;
+  font-size: 10px; font-weight: 500;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  border: none; background: none; font-family: 'DM Sans', sans-serif;
+  transition: color 0.2s;
+}
+.nav-btn.active { color: var(--paper); }
+.nav-btn svg { width: 22px; height: 22px; transition: transform 0.2s; }
+.nav-btn.active svg { transform: translateY(-1px); }
+
+/* ── ONBOARDING ── */
+#screen-onboarding { background: var(--ink); }
+.ob-slide { display: none; flex-direction: column; height: 100%; }
+.ob-slide.active { display: flex; }
+.ob-hero {
+  flex: 1; padding: 60px 28px 28px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  position: relative; overflow: hidden;
+}
+.ob-blob {
+  position: absolute; border-radius: 50%;
+  background: var(--accent); opacity: 0.08;
+  pointer-events: none;
+}
+.ob-emoji { font-size: 54px; margin-bottom: 24px; line-height: 1; display: block; }
+.ob-tag {
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--accent); font-weight: 500; margin-bottom: 10px;
+}
+.ob-title {
+  font-family: 'DM Serif Display', serif; font-size: 34px; line-height: 1.12;
+  color: var(--paper); margin-bottom: 14px;
+}
+.ob-body { color: #7a7870; font-size: 15px; line-height: 1.7; }
+.ob-flow { display: flex; align-items: center; gap: 8px; margin-top: 18px; flex-wrap: wrap; }
+.ob-flow-step { font-size: 13px; color: #5a5854; }
+.ob-flow-arr { color: var(--accent); }
+
+.ob-footer {
+  padding: 20px 28px 36px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: var(--ink);
+}
+.ob-dots { display: flex; gap: 6px; margin-bottom: 18px; }
+.ob-dot { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.12); flex: 1; transition: all 0.35s; }
+.ob-dot.active { background: var(--accent); }
+.ob-dot.done { background: rgba(255,255,255,0.3); }
+.btn-primary {
+  background: var(--accent); color: white; border: none;
+  border-radius: 14px; padding: 16px 24px;
+  font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500;
+  cursor: pointer; width: 100%;
+  transition: opacity 0.15s, transform 0.1s;
+  box-shadow: 0 4px 16px rgba(200,64,26,0.35);
+}
+.btn-primary:active { opacity: 0.88; transform: scale(0.99); }
+.btn-ghost {
+  background: none; border: none; color: #4a4846;
+  font-family: 'DM Sans', sans-serif; font-size: 14px;
+  cursor: pointer; padding: 12px 0; width: 100%; text-align: center; margin-top: 4px;
+}
+
+/* ── APP HEADER ── */
+.app-header {
+  background: var(--ink); color: var(--paper);
+  padding: 58px 20px 22px;
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+.app-header::after {
+  content: ''; position: absolute;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: var(--accent); opacity: 0.07;
+  top: -70px; right: -60px; pointer-events: none;
+}
+.header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+.logo { font-family: 'DM Serif Display', serif; font-size: 20px; }
+.logo span { color: var(--accent); }
+.header-av {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;
+  font-size: 15px; cursor: pointer; border: 1px solid rgba(255,255,255,0.08);
+}
+.greeting { font-size: 12px; color: #4a4846; margin-bottom: 3px; }
+.greeting-name { font-family: 'DM Serif Display', serif; font-size: 26px; margin-bottom: 16px; }
+
+.upload-btn {
+  background: rgba(255,255,255,0.07); border: 1.5px dashed rgba(255,255,255,0.14);
+  border-radius: 14px; padding: 13px 16px;
+  display: flex; align-items: center; gap: 13px; cursor: pointer;
+  transition: background 0.2s; width: 100%; font-family: 'DM Sans', sans-serif;
+}
+.upload-btn:active { background: rgba(255,255,255,0.12); }
+.upload-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  background: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(200,64,26,0.35);
+}
+.qu-strong { font-size: 14px; font-weight: 500; color: var(--paper); display: block; margin-bottom: 1px; text-align: left; }
+.qu-light { font-size: 11px; color: #4a4846; text-align: left; }
+
+/* ── SECTION HEAD ── */
+.sec-head { padding: 18px 16px 8px; display: flex; align-items: baseline; justify-content: space-between; }
+.sec-title { font-family: 'DM Serif Display', serif; font-size: 19px; }
+.sec-link { font-size: 13px; color: var(--accent); cursor: pointer; }
+
+/* ── ALERT CARD ── */
+.alert-card {
+  margin: 0 12px 8px; background: #fef6f3;
+  border: 1.5px solid #f2dfd8; border-radius: 14px;
+  padding: 13px 15px; display: flex; gap: 11px; align-items: flex-start; cursor: pointer;
+  transition: transform 0.12s;
+}
+.alert-card:active { transform: scale(0.99); }
+.alert-pulse {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0; margin-top: 4px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(200,64,26,0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(200,64,26,0); }
+}
+.alert-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.alert-sub { font-size: 12px; color: var(--muted); }
+
+/* ── DOC ITEM ── */
+.doc-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 15px; background: var(--card);
+  border-radius: 14px; margin: 0 12px 8px;
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 0 0 0 transparent;
+  cursor: pointer; transition: transform 0.12s, box-shadow 0.12s;
+}
+.doc-item:active { transform: scale(0.99); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+.doc-icon {
+  width: 42px; height: 42px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0;
+}
+.di-ins { background: #fce8e4; }
+.di-rent { background: #e5eeff; }
+.di-auth { background: var(--warn-bg); }
+.di-other { background: var(--soft); }
+.doc-name { font-size: 13px; font-weight: 500; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 190px; }
+.doc-meta { font-size: 11px; color: var(--muted); }
+.doc-badge { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; margin-left: auto; }
+.doc-chevron { color: #d0ccc4; margin-left: 4px; font-size: 18px; flex-shrink: 0; }
+
+/* ── FAMILY MINI ── */
+.fam-mini {
+  margin: 0 12px 8px; background: var(--card);
+  border: 1px solid rgba(0,0,0,0.06); border-radius: 14px; padding: 14px 15px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.fam-mini-row { display: flex; align-items: center; gap: 10px; }
+.fam-av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.fam-av.p { background: #e5eeff; }
+.fam-av.s { background: var(--warn-bg); }
+.fam-sep { width: 1px; align-self: stretch; background: var(--soft); margin: 0 4px; }
+.fam-info { flex: 1; }
+.fam-name-sm { font-size: 13px; font-weight: 500; }
+.fam-role-sm { font-size: 11px; color: var(--muted); }
+.fam-last { font-size: 11px; color: var(--muted); text-align: right; }
+
+/* ── UPLOAD SCREEN ── */
+.sub-header {
+  background: var(--ink); padding: 54px 20px 18px;
+  display: flex; align-items: center; gap: 13px; flex-shrink: 0;
+}
+.back-btn {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;
+  cursor: pointer; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.08);
+  transition: background 0.15s;
+}
+.back-btn:active { background: rgba(255,255,255,0.18); }
+.sub-title { font-family: 'DM Serif Display', serif; font-size: 20px; color: var(--paper); }
+.drop-zone {
+  margin: 18px 12px; border: 2px dashed #d8d4cc;
+  border-radius: 20px; padding: 40px 20px; text-align: center;
+  cursor: pointer; background: var(--card); transition: all 0.2s;
+}
+.drop-zone:hover, .drop-zone:active { border-color: var(--accent); background: #fefcf8; }
+.dz-emoji { font-size: 40px; margin-bottom: 14px; display: block; }
+.dz-title { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 6px; }
+.dz-sub { font-size: 13px; color: var(--muted); line-height: 1.55; }
+.opt-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; margin: 0 12px 18px; }
+.opt-card {
+  background: var(--card); border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 14px; padding: 14px 8px; text-align: center; cursor: pointer;
+  font-size: 11px; color: var(--muted); transition: all 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05); font-family: 'DM Sans', sans-serif;
+}
+.opt-card:active { border-color: var(--accent); color: var(--ink); transform: scale(0.98); }
+.opt-emoji { font-size: 24px; display: block; margin-bottom: 6px; }
+.sec-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; padding: 0 16px 8px; }
+
+/* ── PROCESSING ── */
+#screen-processing { background: var(--ink); }
+.proc-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 28px; }
+.proc-file {
+  background: rgba(255,255,255,0.07); border-radius: 14px;
+  padding: 16px 18px; width: 100%; display: flex; align-items: center; gap: 13px; margin-bottom: 36px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.proc-file-icon { width: 42px; height: 42px; border-radius: 10px; background: #fce8e4; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.proc-file-name { font-size: 13px; font-weight: 500; color: var(--paper); }
+.proc-file-size { font-size: 11px; color: #5a5854; }
+.proc-title { font-family: 'DM Serif Display', serif; font-size: 24px; color: var(--paper); text-align: center; margin-bottom: 6px; }
+.proc-sub { font-size: 13px; color: #5a5854; text-align: center; margin-bottom: 32px; }
+.proc-steps { width: 100%; }
+.proc-step {
+  display: flex; align-items: center; gap: 13px; padding: 11px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 13px; color: #3a3836; transition: color 0.3s;
+}
+.proc-step:last-child { border: none; }
+.proc-step.done { color: var(--paper); }
+.step-dot {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center; transition: all 0.3s;
+}
+.step-dot.done { background: var(--success); border-color: var(--success); }
+.step-dot.active { border-color: var(--accent); }
+.spin { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid rgba(200,64,26,0.3); border-top-color: var(--accent); animation: spin 0.75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── ANALYSIS ── */
+.analysis-header {
+  background: var(--ink); color: var(--paper);
+  padding: 54px 20px 18px; flex-shrink: 0;
+}
+.ah-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.ah-doc-type { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); font-weight: 500; margin-bottom: 4px; }
+.ah-title { font-family: 'DM Serif Display', serif; font-size: 20px; line-height: 1.2; margin-bottom: 3px; }
+.ah-sub { color: #5a5854; font-size: 12px; }
+.meta-strip { display: flex; gap: 8px; flex-wrap: wrap; }
+.meta-chip {
+  background: rgba(255,255,255,0.07); border-radius: 20px;
+  padding: 4px 11px; font-size: 11px; color: #9a9890; border: 1px solid rgba(255,255,255,0.06);
+}
+.meta-chip strong { color: var(--paper); font-weight: 500; }
+
+.sum-card {
+  margin: 14px 12px 0; background: var(--card);
+  border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.card-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-bottom: 8px; }
+.sum-text { font-size: 13px; line-height: 1.7; color: var(--ink); }
+
+.cov-list { padding: 0 12px; margin-top: 12px; }
+.cov-card {
+  background: var(--card); border: 1px solid rgba(0,0,0,0.06); border-radius: 12px;
+  padding: 12px 13px; margin-bottom: 7px;
+  display: flex; align-items: flex-start; gap: 10px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.cov-dot { width: 7px; height: 7px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.cov-dot.ok { background: var(--success); }
+.cov-dot.warn { background: #e09a20; }
+.cov-dot.no { background: var(--accent); }
+.cov-name { font-size: 13px; font-weight: 500; margin-bottom: 1px; }
+.cov-detail { font-size: 11px; color: var(--muted); }
+.cov-amt { margin-left: auto; font-size: 12px; font-weight: 600; color: var(--success); flex-shrink: 0; padding-left: 8px; }
+.cov-amt.warn { color: var(--warn-fg); }
+.cov-amt.no { color: var(--accent); }
+
+.act-list { padding: 0 12px; margin-top: 12px; }
+.act-card {
+  background: #fef6f3; border: 1.5px solid #f2dfd8; border-radius: 12px;
+  padding: 12px 13px; margin-bottom: 7px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.act-num {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--accent); color: white; font-size: 11px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+}
+.act-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.act-detail { font-size: 11px; color: var(--muted); line-height: 1.55; }
+
+.chat-fab {
+  position: absolute; bottom: 100px; right: 16px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 18px rgba(200,64,26,0.45);
+  z-index: 100; transition: transform 0.15s, box-shadow 0.15s;
+}
+.chat-fab:active { transform: scale(0.93); box-shadow: 0 2px 8px rgba(200,64,26,0.3); }
+
+/* ── CHAT ── */
+#screen-chat { background: var(--paper); }
+.chat-hdr {
+  background: var(--ink); padding: 54px 16px 12px;
+  display: flex; align-items: center; gap: 11px; flex-shrink: 0;
+}
+.chat-doc-pill {
+  background: rgba(255,255,255,0.08); border-radius: 10px;
+  padding: 7px 11px; display: flex; align-items: center; gap: 8px; flex: 1;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.chat-doc-ico { width: 26px; height: 26px; border-radius: 7px; background: #fce8e4; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.chat-doc-nm { font-size: 12px; font-weight: 500; color: var(--paper); }
+.chat-doc-tp { font-size: 10px; color: #5a5854; }
+.chat-msgs { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 9px; }
+.chat-msgs::-webkit-scrollbar { display: none; }
+.msg { max-width: 82%; font-size: 13px; line-height: 1.6; }
+.msg-user { align-self: flex-end; background: var(--ink); color: var(--paper); border-radius: 16px 16px 4px 16px; padding: 10px 14px; }
+.msg-ai { align-self: flex-start; background: var(--card); color: var(--ink); border: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 16px 4px; padding: 10px 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.msg-ai .src { margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--soft); font-size: 10px; color: var(--muted); }
+.typing { align-self: flex-start; padding: 10px 14px; background: var(--card); border: 1px solid rgba(0,0,0,0.06); border-radius: 16px 16px 16px 4px; }
+.typing-dots { display: flex; gap: 4px; }
+.typing-dots span { width: 7px; height: 7px; border-radius: 50%; background: #c0bbb0; animation: blink 1.2s infinite; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+.sugg-row { padding: 7px 12px; display: flex; gap: 7px; overflow-x: auto; border-top: 1px solid var(--soft); flex-shrink: 0; }
+.sugg-row::-webkit-scrollbar { display: none; }
+.sugg-chip {
+  white-space: nowrap; background: var(--card); border: 1.5px solid var(--soft);
+  border-radius: 20px; padding: 6px 12px; font-size: 12px; color: var(--ink);
+  cursor: pointer; font-family: 'DM Sans', sans-serif; flex-shrink: 0;
+  transition: all 0.15s; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.sugg-chip:active { background: var(--soft); transform: scale(0.97); }
+.chat-input-row { padding: 8px 12px 16px; display: flex; gap: 8px; background: var(--paper); border-top: 1px solid var(--soft); flex-shrink: 0; }
+.chat-input {
+  flex: 1; background: var(--card); border: 1.5px solid var(--soft);
+  border-radius: 22px; padding: 10px 16px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px; outline: none; color: var(--ink);
+  transition: border-color 0.2s;
+}
+.chat-input:focus { border-color: var(--accent); }
+.send-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(200,64,26,0.3); transition: opacity 0.15s; }
+.send-btn:active { opacity: 0.85; }
+
+/* ── TRESOR ── */
+.stats-row { display: flex; gap: 9px; padding: 14px 12px 6px; }
+.stat-card {
+  flex: 1; background: var(--card); border: 1px solid rgba(0,0,0,0.06);
+  border-radius: 14px; padding: 12px 10px; text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--accent); line-height: 1; }
+.stat-lbl { font-size: 10px; color: var(--muted); margin-top: 3px; }
+.filter-row { display: flex; gap: 7px; padding: 4px 12px 12px; overflow-x: auto; }
+.filter-row::-webkit-scrollbar { display: none; }
+.f-chip {
+  white-space: nowrap; padding: 6px 13px; border-radius: 20px; font-size: 12px;
+  border: 1.5px solid var(--soft); background: transparent; color: var(--muted);
+  cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.15s; flex-shrink: 0;
+}
+.f-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+/* ── FAMILIE ── */
+.fam-intro-box {
+  background: rgba(255,255,255,0.07); border-radius: 12px;
+  padding: 11px 14px; margin-top: 12px;
+  font-size: 12px; color: #7a7870; line-height: 1.6;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.fam-intro-box strong { color: var(--paper); }
+.member-card {
+  background: var(--card); border: 1px solid rgba(0,0,0,0.06); border-radius: 16px;
+  padding: 14px 15px; margin: 0 12px 9px;
+  display: flex; align-items: center; gap: 13px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.member-av { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.av-cap { background: #fce8e4; }
+.av-part { background: #e5eeff; }
+.av-sen { background: var(--warn-bg); }
+.mem-name { font-size: 14px; font-weight: 500; margin-bottom: 1px; }
+.mem-role { font-size: 11px; color: var(--muted); }
+.cap-pill { display: inline-flex; align-items: center; gap: 3px; background: rgba(200,64,26,0.08); color: var(--accent); font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; margin-top: 3px; }
+.mem-stats { margin-left: auto; text-align: right; flex-shrink: 0; }
+.mem-count { font-family: 'DM Serif Display', serif; font-size: 22px; line-height: 1; }
+.mem-lbl { font-size: 10px; color: var(--muted); }
+.invite-card { margin: 0 12px 9px; border: 1.5px dashed #ccc8be; border-radius: 16px; padding: 14px 15px; display: flex; align-items: center; gap: 13px; cursor: pointer; transition: border-color 0.2s; }
+.invite-card:hover { border-color: var(--accent); }
+.invite-av { width: 44px; height: 44px; border-radius: 50%; background: var(--soft); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+.inv-label { font-size: 13px; font-weight: 500; }
+.inv-sub { font-size: 11px; color: var(--muted); }
+.fam-explainer { margin: 0 12px 14px; background: var(--soft); border-radius: 14px; padding: 14px; }
+.exp-title { font-size: 12px; font-weight: 600; margin-bottom: 9px; }
+.exp-row { display: flex; gap: 9px; font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 7px; }
+.exp-row:last-child { margin-bottom: 0; }
+.pricing-card {
+  margin: 0 12px 16px; padding: 16px; background: var(--card);
+  border: 1px solid rgba(0,0,0,0.06); border-radius: 14px; text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* ── MOBILE OVERRIDE ── */
+@media (max-width: 500px) {
+  body { background: var(--paper); display: block; }
+  .desktop-bg, .desktop-label { display: none; }
+  .device-wrap {
+    width: 100%; height: 100svh; border-radius: 0;
+    box-shadow: none;
+  }
+  .device-wrap::before { display: none; }
+  .status-bar { display: none; }
+  .app-header { padding-top: 20px; }
+  .sub-header { padding-top: 20px; }
+  .analysis-header { padding-top: 20px; }
+  .chat-hdr { padding-top: 20px; }
+  #screen-splash .splash-icon { margin-top: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="desktop-bg"></div>
+<div class="desktop-label">DokuCoach &nbsp;·&nbsp; Prototype &nbsp;·&nbsp; März 2026</div>
+
+<div class="device-wrap">
+<div id="app">
+
+<!-- STATUS BAR -->
+<div class="status-bar dark" id="status-bar">
+  <span class="sb-time" id="sb-time">09:41</span>
+  <div class="sb-icons">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M1.5 8.5C5.5 4.5 10.5 2.5 12 2.5s6.5 2 10.5 6l-2 2c-2.5-2.5-5.7-4-8.5-4S6.5 8 4.5 10l-3-1.5zM5.5 12.5c1.7-1.7 4-2.7 6.5-2.7s4.8 1 6.5 2.7l-2 2c-1.2-1.2-2.8-1.9-4.5-1.9s-3.3.7-4.5 1.9l-2-2zM9.5 16.5c.8-.8 1.9-1.3 2.5-1.3s1.7.5 2.5 1.3l-2.5 2.5-2.5-2.5z"/></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+  </div>
+</div>
+
+<!-- SPLASH -->
+<div class="screen active no-anim" id="screen-splash">
+  <div class="splash-logo">
+    <div class="splash-icon">🔐</div>
+    <div class="splash-name">Doku<span style="color:var(--accent)">Coach</span></div>
+    <div class="splash-tag">Deine Dokumente. Endlich klar.</div>
+  </div>
+</div>
+
+<!-- ONBOARDING -->
+<div class="screen hidden" id="screen-onboarding" style="background:var(--ink)">
+  <div class="ob-slide active" id="ob1">
+    <div class="ob-hero">
+      <div class="ob-blob" style="width:300px;height:300px;top:-80px;right:-80px"></div>
+      <div class="ob-blob" style="width:180px;height:180px;bottom:-40px;left:-60px;opacity:0.04"></div>
+      <span class="ob-emoji">😮‍💨</span>
+      <div class="ob-tag">DokuCoach</div>
+      <h1 class="ob-title">Kein Bock mehr auf dieses Gefühl?</h1>
+      <p class="ob-body">Versicherungspolizzen, Behördenbriefe, Mietverträge – sie stapeln sich. Und das schlechte Gewissen wächst mit.</p>
+    </div>
+    <div class="ob-footer">
+      <div class="ob-dots"><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <button class="btn-primary" onclick="goOb(2)">Weiter</button>
+    </div>
+  </div>
+  <div class="ob-slide" id="ob2">
+    <div class="ob-hero">
+      <div class="ob-blob" style="width:280px;height:280px;top:-60px;right:-60px"></div>
+      <span class="ob-emoji">✨</span>
+      <div class="ob-tag">So funktioniert es</div>
+      <h1 class="ob-title">Schick's rein.<br>Ich erkläre es dir.</h1>
+      <p class="ob-body">Per Upload, Foto oder E-Mail. DokuCoach erklärt in klarer Sprache was drin steht, was es bedeutet – und was du tun musst.</p>
+      <div class="ob-flow">
+        <span class="ob-flow-step">📄 Dokument</span><span class="ob-flow-arr">→</span>
+        <span class="ob-flow-step">🤖 Coach erklärt</span><span class="ob-flow-arr">→</span>
+        <span class="ob-flow-step">🔐 Tresor wächst</span>
+      </div>
+    </div>
+    <div class="ob-footer">
+      <div class="ob-dots"><div class="ob-dot done"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
+      <button class="btn-primary" onclick="goOb(3)">Weiter</button>
+    </div>
+  </div>
+  <div class="ob-slide" id="ob3">
+    <div class="ob-hero">
+      <div class="ob-blob" style="width:260px;height:260px;top:-60px;right:-40px"></div>
+      <span class="ob-emoji">🤝</span>
+      <div class="ob-tag">Vertrauen & Qualität</div>
+      <h1 class="ob-title">Geprüfte Erklärungen von echten Experten.</h1>
+      <p class="ob-body">Unsere Erklärungen entstehen in Zusammenarbeit mit Rechtsexperten und Versicherungsmaklern. Kein Ersatz für einen Anwalt – aber die beste Vorbereitung dafür.</p>
+    </div>
+    <div class="ob-footer">
+      <div class="ob-dots"><div class="ob-dot done"></div><div class="ob-dot done"></div><div class="ob-dot active"></div></div>
+      <button class="btn-primary" onclick="goMain()">Jetzt starten – kostenlos</button>
+      <button class="btn-ghost" onclick="goMain()">Demo ansehen</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div class="screen hidden" id="screen-home">
+  <div class="app-header">
+    <div class="header-row">
+      <div class="logo">Doku<span>Coach</span></div>
+      <div class="header-av">👤</div>
+    </div>
+    <div class="greeting">Guten Morgen,</div>
+    <div class="greeting-name">Jan. 👋</div>
+    <button class="upload-btn" onclick="nav('upload')">
+      <div class="upload-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+      </div>
+      <div>
+        <span class="qu-strong">Dokument hochladen</span>
+        <span class="qu-light">PDF · Foto · E-Mail weiterleiten</span>
+      </div>
+    </button>
+  </div>
+  <div class="scroll-view">
+    <div class="sec-head"><span class="sec-title">Handlungsbedarf</span></div>
+    <div class="alert-card" onclick="nav('analysis')">
+      <div class="alert-pulse"></div>
+      <div><div class="alert-title">Kündigung prüfen</div><div class="alert-sub">Haushaltsversicherung · Frist: 30. Sep 2026</div></div>
+    </div>
+
+    <div class="sec-head"><span class="sec-title">Zuletzt hinzugefügt</span><span class="sec-link" onclick="setTab('tresor')">Alle →</span></div>
+    <div class="doc-item" onclick="nav('analysis')">
+      <div class="doc-icon di-ins">🏠</div>
+      <div style="flex:1;min-width:0"><div class="doc-name">Haushaltsversicherung</div><div class="doc-meta">Wiener Städtische · Heute</div></div>
+      <div class="doc-badge"></div><div class="doc-chevron">›</div>
+    </div>
+    <div class="doc-item">
+      <div class="doc-icon di-rent">📋</div>
+      <div style="flex:1;min-width:0"><div class="doc-name">Mietvertrag Wohnung</div><div class="doc-meta">Wienerberg · vor 3 Tagen</div></div>
+      <div class="doc-chevron">›</div>
+    </div>
+    <div class="doc-item">
+      <div class="doc-icon di-auth">📬</div>
+      <div style="flex:1;min-width:0"><div class="doc-name">Finanzamt – Bescheid</div><div class="doc-meta">FA Wien · vor 1 Woche</div></div>
+      <div class="doc-chevron">›</div>
+    </div>
+
+    <div class="sec-head"><span class="sec-title">Familie</span><span class="sec-link" onclick="setTab('familie')">Verwalten →</span></div>
+    <div class="fam-mini">
+      <div class="fam-mini-row">
+        <div class="fam-av p">👩</div>
+        <div class="fam-info"><div class="fam-name-sm">Maria Hosak</div><div class="fam-role-sm">Partnerin · 2 Dokumente</div></div>
+        <div class="fam-sep"></div>
+        <div class="fam-av s">👵</div>
+        <div class="fam-info"><div class="fam-name-sm">Rosa Novak</div><div class="fam-role-sm">Mutter · 1 Dokument</div></div>
+        <div class="fam-last">gestern<br><span style="color:#d0ccc4;font-size:10px">aktiv</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD -->
+<div class="screen hidden" id="screen-upload">
+  <div class="sub-header">
+    <div class="back-btn" onclick="navBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+    <div class="sub-title">Dokument hochladen</div>
+  </div>
+  <div class="scroll-view">
+    <div class="drop-zone" onclick="startProc()">
+      <span class="dz-emoji">📄</span>
+      <h3 class="dz-title">Dokument reinziehen</h3>
+      <p class="dz-sub">PDF oder Bild · bis 50 MB<br>Tippe hier zum Auswählen</p>
+    </div>
+    <div class="sec-label">Oder so hochladen</div>
+    <div class="opt-grid">
+      <div class="opt-card" onclick="startProc()"><span class="opt-emoji">📷</span>Foto aufnehmen</div>
+      <div class="opt-card" onclick="startProc()"><span class="opt-emoji">✉️</span>E-Mail weiterleiten</div>
+      <div class="opt-card" onclick="startProc()"><span class="opt-emoji">☁️</span>Cloud-Speicher</div>
+    </div>
+    <div class="sec-label">Zuletzt hochgeladen</div>
+    <div class="doc-item" onclick="nav('analysis')">
+      <div class="doc-icon di-ins">🏠</div>
+      <div style="flex:1;min-width:0"><div class="doc-name">Haushaltsversicherung</div><div class="doc-meta">Wiener Städtische · Heute</div></div>
+      <div class="doc-chevron">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- PROCESSING -->
+<div class="screen hidden" id="screen-processing" style="background:var(--ink)">
+  <div class="proc-center">
+    <div class="proc-file">
+      <div class="proc-file-icon">🏠</div>
+      <div><div class="proc-file-name">Haushaltsversicherung_2025.pdf</div><div class="proc-file-size">2,4 MB · PDF</div></div>
+    </div>
+    <h2 class="proc-title">Einen Moment …</h2>
+    <p class="proc-sub">Dein Dokument wird analysiert</p>
+    <div class="proc-steps">
+      <div class="proc-step" id="ps1"><div class="step-dot active" id="pd1"><div class="spin"></div></div>Dokument einlesen &amp; aufbereiten</div>
+      <div class="proc-step" id="ps2"><div class="step-dot" id="pd2"></div>Inhalt verstehen &amp; strukturieren</div>
+      <div class="proc-step" id="ps3"><div class="step-dot" id="pd3"></div>Zusammenfassung erstellen</div>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYSIS -->
+<div class="screen hidden" id="screen-analysis">
+  <div class="analysis-header">
+    <div class="ah-row">
+      <div class="back-btn" onclick="navBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+      <div><div class="ah-doc-type">Versicherungspolizze</div><div class="ah-title">Haushalts- &amp; Haftpflichtversicherung</div><div class="ah-sub">Wiener Städtische · HS-2024-04892</div></div>
+    </div>
+    <div class="meta-strip">
+      <div class="meta-chip">Prämie: <strong>€ 510,–/Jahr</strong></div>
+      <div class="meta-chip">Läuft bis: <strong>31.12.2026</strong></div>
+      <div class="meta-chip">Kündigung bis: <strong>30. Sep 2026</strong></div>
+    </div>
+  </div>
+  <div class="scroll-view">
+    <div class="sum-card">
+      <div class="card-label">Was drin steht – kurz &amp; klar</div>
+      <div class="sum-text">Diese Polizze schützt deine Wohnung und dich persönlich. Du bist gegen die größten Risiken abgesichert: Wasserschäden, Feuer, Einbruch und Schäden an anderen. <strong>Achtung:</strong> Fahrraddiebstahl fehlt, Kunstgegenstände nur begrenzt versichert.</div>
+    </div>
+    <div class="sec-head" style="padding-top:14px"><span class="sec-title">Was du hast</span></div>
+    <div class="cov-list">
+      <div class="cov-card"><div class="cov-dot ok"></div><div><div class="cov-name">Leitungswasserschäden</div><div class="cov-detail">Waschmaschine, Rohrbruch, Aquarium</div></div><div class="cov-amt">€ 50.000</div></div>
+      <div class="cov-card"><div class="cov-dot ok"></div><div><div class="cov-name">Feuer &amp; Blitzschlag</div><div class="cov-detail">Inkl. Überspannungsschäden</div></div><div class="cov-amt">€ 250.000</div></div>
+      <div class="cov-card"><div class="cov-dot ok"></div><div><div class="cov-name">Einbruchdiebstahl</div><div class="cov-detail">Inkl. Vandalismus nach Einbruch</div></div><div class="cov-amt">€ 25.000</div></div>
+      <div class="cov-card"><div class="cov-dot ok"></div><div><div class="cov-name">Privat-Haftpflicht</div><div class="cov-detail">Schäden an Personen &amp; Sachen</div></div><div class="cov-amt">€ 1 Mio.</div></div>
+      <div class="cov-card"><div class="cov-dot warn"></div><div><div class="cov-name">Kunstgegenstände</div><div class="cov-detail">Über € 500 pro Stück nicht versichert</div></div><div class="cov-amt warn">⚠ Begrenzt</div></div>
+      <div class="cov-card"><div class="cov-dot no"></div><div><div class="cov-name">Fahrraddiebstahl</div><div class="cov-detail">Nicht inkludiert – Zusatz möglich</div></div><div class="cov-amt no">✕ Fehlt</div></div>
+    </div>
+    <div class="sec-head" style="padding-top:6px"><span class="sec-title">Was du tun solltest</span></div>
+    <div class="act-list">
+      <div class="act-card"><div class="act-num">1</div><div><div class="act-title">Kündigung vormerken</div><div class="act-detail">Kündigung muss bis 30. September 2026 einlangen. Jetzt Erinnerung setzen.</div></div></div>
+      <div class="act-card"><div class="act-num">2</div><div><div class="act-title">Fahrrad-Zusatz prüfen</div><div class="act-detail">Kein Fahrrad mitversichert. Nachfrage kostet ca. € 30–60/Jahr extra.</div></div></div>
+      <div class="act-card"><div class="act-num">3</div><div><div class="act-title">Kunstgegenstände prüfen</div><div class="act-detail">Bilder, Schmuck oder Sammlerstücke über € 500 separat versichern.</div></div></div>
+    </div>
+  </div>
+  <button class="chat-fab" onclick="setTab('chat')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  </button>
+</div>
+
+<!-- CHAT -->
+<div class="screen hidden" id="screen-chat">
+  <div class="chat-hdr">
+    <div class="back-btn" onclick="nav('analysis')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+    <div class="chat-doc-pill"><div class="chat-doc-ico">🏠</div><div><div class="chat-doc-nm">Haushaltsversicherung</div><div class="chat-doc-tp">Wiener Städtische</div></div></div>
+  </div>
+  <div class="chat-msgs" id="chat-msgs">
+    <div class="msg msg-ai">Hallo Jan! 👋 Ich habe deine <strong>Haushalts- und Haftpflichtversicherung</strong> analysiert. Frag mich was du wissen möchtest.</div>
+    <div class="msg msg-user">Bin ich versichert wenn meine Waschmaschine einen Wasserschaden macht?</div>
+    <div class="msg msg-ai">Ja, das ist gedeckt. 🟢<br><br>Laut <strong>§ 4.1</strong> sind Leitungswasserschäden bis <strong>€ 50.000</strong> versichert – das schließt Waschmaschinen ausdrücklich ein.<br><br>Bitte den Schaden innerhalb von <strong>7 Tagen</strong> melden.<div class="src">📄 Quelle: Polizze HS-2024-04892, §4.1</div></div>
+  </div>
+  <div class="sugg-row" id="sugg-row">
+    <div class="sugg-chip" onclick="sendSugg('Ist mein Fahrrad versichert?')">🚲 Fahrrad?</div>
+    <div class="sugg-chip" onclick="sendSugg('Bis wann kann ich kündigen?')">📅 Kündigung?</div>
+    <div class="sugg-chip" onclick="sendSugg('Was passiert wenn mein Nachbar klagt?')">⚖️ Haftpflicht?</div>
+    <div class="sugg-chip" onclick="sendSugg('Was kostet mich die Versicherung monatlich?')">💶 Preis?</div>
+  </div>
+  <div class="chat-input-row">
+    <input class="chat-input" id="chat-in" placeholder="Stell deine Frage …" onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="send-btn" onclick="sendMsg()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+</div>
+
+<!-- TRESOR -->
+<div class="screen hidden" id="screen-tresor">
+  <div class="app-header">
+    <div class="header-row">
+      <div class="logo">Doku<span>Coach</span></div>
+      <div class="header-av" onclick="nav('upload')" style="cursor:pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12l7-7 7 7"/></svg></div>
+    </div>
+    <div style="font-family:'DM Serif Display',serif;font-size:24px">Mein Tresor 🔐</div>
+  </div>
+  <div class="scroll-view">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num">5</div><div class="stat-lbl">Dokumente</div></div>
+      <div class="stat-card"><div class="stat-num">3</div><div class="stat-lbl">Kategorien</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:var(--accent)">1</div><div class="stat-lbl" style="color:var(--accent)">Aktion fällig</div></div>
+    </div>
+    <div class="filter-row">
+      <button class="f-chip active" onclick="filterDocs(this,'alle')">Alle</button>
+      <button class="f-chip" onclick="filterDocs(this,'vers')">🏠 Versicherung</button>
+      <button class="f-chip" onclick="filterDocs(this,'vert')">📋 Verträge</button>
+      <button class="f-chip" onclick="filterDocs(this,'beh')">📬 Behörde</button>
+    </div>
+    <div id="docs-list">
+      <div class="doc-item" data-cat="vers" onclick="nav('analysis')"><div class="doc-icon di-ins">🏠</div><div style="flex:1;min-width:0"><div class="doc-name">Haushaltsversicherung</div><div class="doc-meta">Wiener Städtische · Jan 2025</div></div><div class="doc-badge"></div><div class="doc-chevron">›</div></div>
+      <div class="doc-item" data-cat="vers"><div class="doc-icon di-ins">🚗</div><div style="flex:1;min-width:0"><div class="doc-name">KFZ-Haftpflicht</div><div class="doc-meta">Generali · Nov 2024</div></div><div class="doc-chevron">›</div></div>
+      <div class="doc-item" data-cat="vers"><div class="doc-icon di-ins">❤️</div><div style="flex:1;min-width:0"><div class="doc-name">Krankenversicherung</div><div class="doc-meta">ÖGK · Dez 2024</div></div><div class="doc-chevron">›</div></div>
+      <div class="doc-item" data-cat="vert"><div class="doc-icon di-rent">📋</div><div style="flex:1;min-width:0"><div class="doc-name">Mietvertrag Wohnung</div><div class="doc-meta">Wienerberg · Mär 2023</div></div><div class="doc-chevron">›</div></div>
+      <div class="doc-item" data-cat="beh"><div class="doc-icon di-auth">📬</div><div style="flex:1;min-width:0"><div class="doc-name">Finanzamt – Bescheid</div><div class="doc-meta">FA Wien · Feb 2025</div></div><div class="doc-chevron">›</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- FAMILIE -->
+<div class="screen hidden" id="screen-familie">
+  <div class="app-header">
+    <div class="header-row"><div class="logo">Doku<span>Coach</span></div></div>
+    <div style="font-family:'DM Serif Display',serif;font-size:24px">Familie &amp; Sharing</div>
+    <div class="fam-intro-box"><strong>Kapitän-Modell:</strong> Du richtest ein – alle profitieren. Jedes Mitglied hat einen eigenen verschlüsselten Bereich.</div>
+  </div>
+  <div class="scroll-view">
+    <div class="sec-head"><span class="sec-title">Mitglieder (3)</span></div>
+    <div class="member-card"><div class="member-av av-cap">🧑</div><div><div class="mem-name">Jan Hosak</div><div class="mem-role">Du</div><div class="cap-pill">⚓ Kapitän</div></div><div class="mem-stats"><div class="mem-count">5</div><div class="mem-lbl">Dokumente</div></div></div>
+    <div class="member-card"><div class="member-av av-part">👩</div><div><div class="mem-name">Maria Hosak</div><div class="mem-role">Partnerin · Plus</div></div><div class="mem-stats"><div class="mem-count">2</div><div class="mem-lbl">Dokumente</div></div></div>
+    <div class="member-card"><div class="member-av av-sen">👵</div><div><div class="mem-name">Rosa Novak</div><div class="mem-role">Mutter · Basic</div></div><div class="mem-stats"><div class="mem-count">1</div><div class="mem-lbl">Dokument</div></div></div>
+    <div class="invite-card"><div class="invite-av">➕</div><div><div class="inv-label">Mitglied einladen</div><div class="inv-sub">Per E-Mail · sofortige Freischaltung</div></div></div>
+    <div class="sec-head" style="padding-top:4px"><span class="sec-title">Wie es funktioniert</span></div>
+    <div class="fam-explainer">
+      <div class="exp-title">Das Kapitän-Modell</div>
+      <div class="exp-row"><span>🔐</span>Jedes Mitglied hat einen eigenen verschlüsselten Bereich. Du siehst nur was freigegeben wird.</div>
+      <div class="exp-row"><span>⚓</span>Der Kapitän richtet ein und lädt ein. Ideal für Eltern, die Kindern helfen – oder umgekehrt.</div>
+      <div class="exp-row"><span>📱</span>Oma Rosa schickt einen Brief per Foto. Du bekommst eine Meldung und kannst sofort helfen.</div>
+    </div>
+    <div class="pricing-card">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Family-Plan ab</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:34px;color:var(--accent);line-height:1">€ 24,90</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px">/ Monat · bis 5 Mitglieder</div>
+      <button class="btn-primary" style="border-radius:12px;padding:14px">Family-Plan freischalten</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav hidden" id="bottom-nav">
+  <button class="nav-btn" id="nav-home" onclick="setTab('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home
+  </button>
+  <button class="nav-btn" id="nav-tresor" onclick="setTab('tresor')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>Tresor
+  </button>
+  <button class="nav-btn" id="nav-chat" onclick="setTab('chat')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>Coach
+  </button>
+  <button class="nav-btn" id="nav-familie" onclick="setTab('familie')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Familie
+  </button>
+</nav>
+
+</div><!-- /app -->
+</div><!-- /device-wrap -->
+
+<script>
+// ── TIME ──
+function tick() {
+  const d = new Date();
+  document.getElementById('sb-time').textContent =
+    d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+}
+tick(); setInterval(tick, 10000);
+
+// ── NAV STACK ──
+let current = 'splash';
+let history = [];
+const noNav = new Set(['splash','onboarding','upload','processing']);
+const tabMap = { home:'home', tresor:'tresor', chat:'chat', familie:'familie' };
+
+function showScreen(id, addHistory = true) {
+  const prev = document.getElementById('screen-' + current);
+  const next = document.getElementById('screen-' + id);
+  if (!next || current === id) return;
+
+  if (addHistory && !noNav.has(current)) history.push(current);
+
+  // Status bar color
+  const darkScreens = new Set(['onboarding','processing']);
+  document.getElementById('status-bar').className =
+    'status-bar ' + (darkScreens.has(id) ? 'dark' : 'light');
+
+  prev.classList.remove('active');
+  prev.classList.add('gone');
+  next.classList.remove('hidden','gone');
+  next.classList.add('active');
+
+  setTimeout(() => prev.classList.add('hidden'), 340);
+
+  current = id;
+  const nav = document.getElementById('bottom-nav');
+  nav.classList.toggle('hidden', noNav.has(id));
+
+  ['home','tresor','chat','familie'].forEach(t => {
+    const b = document.getElementById('nav-' + t);
+    if (b) b.classList.toggle('active', id === t || (id === 'analysis' && t === 'tresor'));
+  });
+
+  const sv = next.querySelector('.scroll-view');
+  if (sv) sv.scrollTop = 0;
+}
+
+function nav(id) { showScreen(id); }
+
+function navBack() {
+  if (history.length) showScreen(history.pop(), false);
+  else showScreen('home', false);
+}
+
+function setTab(tab) {
+  history = [];
+  showScreen(tabMap[tab] || tab);
+}
+
+// ── SPLASH → ONBOARDING ──
+setTimeout(() => {
+  const splash = document.getElementById('screen-splash');
+  splash.classList.remove('active');
+  splash.classList.add('hidden');
+  const ob = document.getElementById('screen-onboarding');
+  ob.classList.remove('hidden');
+  ob.classList.add('active', 'no-anim');
+  setTimeout(() => ob.classList.remove('no-anim'), 50);
+  current = 'onboarding';
+  document.getElementById('status-bar').className = 'status-bar dark';
+}, 1800);
+
+// ── ONBOARDING ──
+function goOb(n) {
+  document.querySelectorAll('.ob-slide').forEach(s => s.classList.remove('active'));
+  document.getElementById('ob'+n).classList.add('active');
+}
+function goMain() { showScreen('home'); }
+
+// ── PROCESSING ──
+function startProc() {
+  showScreen('processing');
+  resetProc();
+  setTimeout(() => { stepDone(1); stepActive(2); }, 700);
+  setTimeout(() => { stepDone(2); stepActive(3); }, 1800);
+  setTimeout(() => stepDone(3), 2800);
+  setTimeout(() => showScreen('analysis'), 3300);
+}
+function resetProc() {
+  [1,2,3].forEach(i => {
+    const d = document.getElementById('pd'+i), s = document.getElementById('ps'+i);
+    d.className='step-dot'; d.innerHTML=''; s.classList.remove('done');
+  });
+  const d1 = document.getElementById('pd1');
+  d1.classList.add('active'); d1.innerHTML='<div class="spin"></div>';
+}
+function stepDone(n) {
+  const d = document.getElementById('pd'+n), s = document.getElementById('ps'+n);
+  d.className='step-dot done';
+  d.innerHTML='<svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><polyline points="2,6 5,9 10,3"/></svg>';
+  s.classList.add('done');
+}
+function stepActive(n) {
+  const d = document.getElementById('pd'+n);
+  d.className='step-dot active'; d.innerHTML='<div class="spin"></div>';
+}
+
+// ── CHAT ──
+const qa = [
+  { k:['fahrrad','rad'], a:'Leider nicht. 🔴\n\nFahrraddiebstahl ist in dieser Polizze <strong>nicht inkludiert</strong>. Du könntest einen Fahrrad-Zusatz bei der Wiener Städtische anfragen – ca. € 30–60/Jahr extra.', s:'Polizze HS-2024-04892, §6 – Ausschlüsse' },
+  { k:['kündigen','kündigung','frist'], a:'Deine Polizze läuft bis <strong>31.12.2026</strong>.\n\nKündigung muss bis <strong>30. September 2026</strong> schriftlich einlangen. Vergisst du das, verlängert sie sich automatisch um ein Jahr.', s:'Polizze HS-2024-04892, §12 – Laufzeit' },
+  { k:['nachbar','haftpflicht','klage','schuld'], a:'Du bist abgesichert. 🟢\n\nDeine <strong>Privat-Haftpflicht</strong> deckt Schäden an anderen Personen und deren Eigentum bis <strong>€ 1.000.000</strong>.', s:'Polizze HS-2024-04892, §8 – Haftpflicht' },
+  { k:['kosten','preis','prämie','monatlich'], a:'Du zahlst <strong>€ 510,– pro Jahr</strong>, das sind <strong>€ 42,50 pro Monat</strong>. Fällig jährlich am 1. Januar.', s:'Polizze HS-2024-04892, §11 – Prämie' },
+  { k:['wasser','waschmaschine','rohr'], a:'Ja, gedeckt. 🟢\n\nLeitungswasserschäden sind bis <strong>€ 50.000</strong> versichert – Waschmaschinen ausdrücklich inkludiert. Schaden innerhalb von <strong>7 Tagen</strong> melden.', s:'Polizze HS-2024-04892, §4.1' },
+];
+
+function findAnswer(t) {
+  const l = t.toLowerCase();
+  for (const q of qa) if (q.k.some(k => l.includes(k))) return q;
+  return { a:'Gute Frage! In dieser Demo kann ich darauf noch nicht antworten. In der echten App würde ich das für dich in Sekunden herausfinden.', s:null };
+}
+
+function addMsg(html, type) {
+  const msgs = document.getElementById('chat-msgs');
+  const d = document.createElement('div');
+  d.className = 'msg msg-' + type;
+  d.innerHTML = html.replace(/\n/g,'<br>');
+  msgs.appendChild(d);
+  msgs.scrollTop = msgs.scrollHeight;
+  return d;
+}
+
+function sendMsg() {
+  const inp = document.getElementById('chat-in');
+  const txt = inp.value.trim();
+  if (!txt) return;
+  inp.value = '';
+  addMsg(txt, 'user');
+
+  // Typing indicator
+  const msgs = document.getElementById('chat-msgs');
+  const typing = document.createElement('div');
+  typing.className = 'typing';
+  typing.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(() => {
+    typing.remove();
+    const r = findAnswer(txt);
+    const el = addMsg(r.a, 'ai');
+    if (r.s) { const s = document.createElement('div'); s.className='src'; s.textContent='📄 '+r.s; el.appendChild(s); }
+  }, 900);
+}
+
+function sendSugg(t) { document.getElementById('chat-in').value = t; sendMsg(); }
+
+// ── FILTER ──
+function filterDocs(btn, cat) {
+  document.querySelectorAll('.f-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#docs-list .doc-item').forEach(i => {
+    i.style.display = (cat==='alle' || i.dataset.cat===cat) ? 'flex' : 'none';
+  });
+}
+</script>
+</body>
+</html>
