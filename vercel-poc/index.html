@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DokuCoach – Dokument verstehen leicht gemacht</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a18;
+  --paper: #f5f2eb;
+  --accent: #c8401a;
+  --soft: #e8e4da;
+  --muted: #7a7870;
+  --success: #2d7a4f;
+  --warn-bg: #fdf3e3;
+  --warn-fg: #9a6012;
+  --card: #ffffff;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  background: #111110;
+  color: var(--ink);
+}
+
+/* ── LAYOUT WRAPPER ── */
+.app {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px 60px;
+  background: radial-gradient(ellipse at 30% 20%, rgba(200,64,26,0.10) 0%, transparent 55%),
+              radial-gradient(ellipse at 80% 70%, rgba(200,64,26,0.05) 0%, transparent 50%),
+              #0e0e0d;
+}
+
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--paper);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 8px 20px rgba(0,0,0,0.4);
+}
+
+/* ── HEADER ── */
+.header {
+  padding: 32px 28px 20px;
+  border-bottom: 1px solid var(--soft);
+}
+
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.logo span { color: var(--accent); }
+
+.tagline {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; padding: 28px; }
+.screen.active { display: block; }
+
+/* ── SCREEN 1: UPLOAD ── */
+.screen-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.screen-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--soft);
+  border-radius: 12px;
+  background: var(--card);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 20px;
+}
+
+.form-input:focus { border-color: var(--accent); }
+
+.drop-zone {
+  border: 2px dashed #d0cdc5;
+  border-radius: 16px;
+  padding: 36px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--card);
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--accent);
+  background: #fdf8f5;
+}
+
+.drop-zone input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.drop-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.drop-main {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.drop-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.drop-selected {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 500;
+  margin-top: 10px;
+  display: none;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  letter-spacing: 0.02em;
+}
+
+.btn-primary:hover { opacity: 0.9; }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.privacy-note {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 16px;
+  line-height: 1.5;
+}
+
+/* ── SCREEN 2: LOADING ── */
+.loading-wrap {
+  text-align: center;
+  padding: 40px 0;
+}
+
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--soft);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.loading-steps {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 2;
+}
+
+.loading-step { opacity: 0.4; transition: opacity 0.5s; }
+.loading-step.done { opacity: 1; color: var(--success); }
+.loading-step.active { opacity: 1; color: var(--ink); }
+
+/* ── SCREEN 3: RESULT ── */
+.result-doc-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--soft);
+}
+
+.doc-badge {
+  background: var(--accent);
+  color: white;
+  font-size: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.doc-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+
+.doc-provider {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.summary-text {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.6;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.leistungen-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.leistung-card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.leistung-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.leistung-dot.ok { background: var(--success); }
+.leistung-dot.warn { background: #e09000; }
+.leistung-dot.no { background: #c0392b; }
+
+.leistung-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.leistung-detail {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.leistung-betrag {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-left: auto;
+  flex-shrink: 0;
+  padding-left: 8px;
+}
+
+.was-tun-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.was-tun-item {
+  background: var(--warn-bg);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.wt-nr {
+  width: 22px;
+  height: 22px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.wt-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.wt-detail {
+  font-size: 12px;
+  color: var(--warn-fg);
+  line-height: 1.4;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--soft);
+  font-size: 13px;
+}
+
+.meta-row:last-child { border-bottom: none; }
+.meta-key { color: var(--muted); }
+.meta-val { font-weight: 500; color: var(--ink); }
+
+.notion-link {
+  display: block;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid var(--soft);
+  border-radius: 10px;
+  transition: background 0.2s;
+}
+
+.notion-link:hover { background: var(--soft); }
+
+.btn-chat {
+  width: 100%;
+  padding: 16px;
+  background: var(--ink);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn-chat:hover { opacity: 0.85; }
+
+.btn-new {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--soft);
+  border-radius: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.btn-new:hover { border-color: var(--ink); color: var(--ink); }
+
+/* ── SCREEN 4: CHAT ── */
+.chat-doc-bar {
+  background: var(--soft);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-doc-icon { font-size: 18px; }
+.chat-doc-name { font-weight: 500; color: var(--ink); }
+.chat-doc-type { font-size: 11px; color: var(--muted); }
+
+.chat-messages {
+  min-height: 240px;
+  max-height: 380px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-right: 4px;
+}
+
+.msg {
+  max-width: 86%;
+  padding: 12px 16px;
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.msg.user {
+  background: var(--ink);
+  color: white;
+  align-self: flex-end;
+  border-bottom-right-radius: 4px;
+}
+
+.msg.assistant {
+  background: var(--card);
+  color: var(--ink);
+  align-self: flex-start;
+  border-bottom-left-radius: 4px;
+}
+
+.msg.typing {
+  background: var(--card);
+  align-self: flex-start;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.chat-input-wrap {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 14px 16px;
+  border: 1.5px solid var(--soft);
+  border-radius: 14px;
+  background: var(--card);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s;
+  min-height: 50px;
+  max-height: 120px;
+}
+
+.chat-input:focus { border-color: var(--accent); }
+
+.chat-send {
+  width: 50px;
+  height: 50px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.chat-send:hover { opacity: 0.85; }
+.chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.suggestion-chip {
+  padding: 8px 14px;
+  background: var(--card);
+  border: 1.5px solid var(--soft);
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.suggestion-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  margin-bottom: 16px;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.2s;
+}
+
+.btn-back:hover { color: var(--ink); }
+
+/* ── ERROR ── */
+.error-banner {
+  background: #fdecea;
+  border: 1px solid #f5c2bd;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: #c0392b;
+  margin-bottom: 20px;
+  display: none;
+  line-height: 1.5;
+}
+
+.error-banner.show { display: block; }
+
+/* ── FOOTER ── */
+.footer {
+  padding: 16px 28px;
+  border-top: 1px solid var(--soft);
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+}
+
+/* ── SCROLLBAR ── */
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-track { background: transparent; }
+.chat-messages::-webkit-scrollbar-thumb { background: var(--soft); border-radius: 2px; }
+
+/* ── MOBILE ── */
+@media (max-width: 560px) {
+  .app { padding: 0; align-items: flex-start; }
+  .card { border-radius: 0; min-height: 100vh; box-shadow: none; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <!-- HEADER -->
+    <div class="header">
+      <div class="logo">Doku<span>Coach</span></div>
+      <div class="tagline">Dein Dokument, verständlich erklärt</div>
+    </div>
+
+    <!-- SCREEN 1: UPLOAD -->
+    <div class="screen active" id="screen-upload">
+      <h1 class="screen-title">Lade dein<br>Dokument hoch</h1>
+      <p class="screen-sub">Polizze, Vertrag oder Bescheid – wir analysieren es auf Österreich zugeschnitten, klar und ohne Juristendeutsch.</p>
+
+      <div class="error-banner" id="upload-error"></div>
+
+      <label class="form-label" for="email-input">Deine E-Mail-Adresse</label>
+      <input
+        class="form-input"
+        type="email"
+        id="email-input"
+        placeholder="max.muster@gmail.com"
+        autocomplete="email"
+      >
+
+      <label class="form-label">Dokument (PDF, max. 10 MB)</label>
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="file-input" accept="application/pdf">
+        <span class="drop-icon">📄</span>
+        <div class="drop-main">PDF hier ablegen</div>
+        <div class="drop-hint">oder tippe zum Auswählen</div>
+        <div class="drop-selected" id="file-name"></div>
+      </div>
+
+      <button class="btn-primary" id="btn-analyze" disabled onclick="startAnalysis()">
+        Dokument analysieren
+      </button>
+
+      <p class="privacy-note">
+        🔒 Dein Dokument wird nur zur Analyse verwendet und danach gelöscht.<br>
+        Wir speichern keine PDFs – nur die Analyse.
+      </p>
+    </div>
+
+    <!-- SCREEN 2: LOADING -->
+    <div class="screen" id="screen-loading">
+      <div class="loading-wrap">
+        <div class="spinner"></div>
+        <div class="loading-title">Analysiere dein Dokument…</div>
+        <div class="loading-steps">
+          <div class="loading-step" id="step-1">📤 Dokument wird übertragen</div>
+          <div class="loading-step" id="step-2">🔍 Claude liest das Dokument</div>
+          <div class="loading-step" id="step-3">🇦🇹 Österreichisches Recht wird geprüft</div>
+          <div class="loading-step" id="step-4">📋 Analyse wird gespeichert</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: RESULT -->
+    <div class="screen" id="screen-result">
+      <!-- doc meta -->
+      <div class="result-doc-meta">
+        <div class="doc-badge" id="res-emoji">📄</div>
+        <div>
+          <div class="doc-name" id="res-name">–</div>
+          <div class="doc-provider" id="res-provider">–</div>
+        </div>
+      </div>
+
+      <!-- summary -->
+      <div class="section-label">Zusammenfassung</div>
+      <div class="summary-text" id="res-summary">–</div>
+
+      <!-- meta row: kosten + gültig bis -->
+      <div style="background: var(--card); border-radius: 12px; padding: 4px 16px; margin-bottom: 20px;">
+        <div class="meta-row">
+          <span class="meta-key">Monatliche Kosten</span>
+          <span class="meta-val" id="res-kosten">–</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Gültig bis</span>
+          <span class="meta-val" id="res-gueltig">–</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-key">Typ</span>
+          <span class="meta-val" id="res-typ">–</span>
+        </div>
+      </div>
+
+      <!-- leistungen -->
+      <div class="section-label">Was du hast</div>
+      <div class="leistungen-grid" id="res-leistungen"></div>
+
+      <!-- was tun -->
+      <div class="section-label" id="was-tun-label" style="display:none">Was du tun solltest</div>
+      <div class="was-tun-list" id="res-was-tun"></div>
+
+      <!-- wichtige klauseln -->
+      <div class="section-label">Wichtige Klauseln</div>
+      <div class="summary-text" id="res-klauseln" style="font-size:13px;color:var(--muted)">–</div>
+
+      <!-- notion link -->
+      <a class="notion-link" id="res-notion-link" href="#" target="_blank" rel="noopener">
+        📁 In Notion öffnen →
+      </a>
+
+      <!-- cta -->
+      <button class="btn-chat" onclick="showChat()">
+        💬 Fragen stellen
+      </button>
+      <button class="btn-new" onclick="resetToUpload()">
+        Weiteres Dokument analysieren
+      </button>
+    </div>
+
+    <!-- SCREEN 4: CHAT -->
+    <div class="screen" id="screen-chat">
+      <button class="btn-back" onclick="showResult()">
+        ← Zurück zur Analyse
+      </button>
+
+      <div class="chat-doc-bar">
+        <div class="chat-doc-icon" id="chat-doc-icon">📄</div>
+        <div>
+          <div class="chat-doc-name" id="chat-doc-name">–</div>
+          <div class="chat-doc-type" id="chat-doc-type">–</div>
+        </div>
+      </div>
+
+      <div class="chat-suggestions" id="chat-suggestions">
+        <div class="suggestion-chip" onclick="sendSuggestion(this)">Was bin ich versichert?</div>
+        <div class="suggestion-chip" onclick="sendSuggestion(this)">Wie kündige ich?</div>
+        <div class="suggestion-chip" onclick="sendSuggestion(this)">Was kostet mich das wirklich?</div>
+        <div class="suggestion-chip" onclick="sendSuggestion(this)">Was ist ausgeschlossen?</div>
+      </div>
+
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg assistant" id="chat-welcome">
+          Hallo! Ich habe dein Dokument analysiert. Was möchtest du wissen? Stell mir einfach eine Frage dazu. 😊
+        </div>
+      </div>
+
+      <div class="chat-input-wrap">
+        <textarea
+          class="chat-input"
+          id="chat-input"
+          placeholder="Frag mich etwas…"
+          rows="1"
+          onkeydown="handleChatKey(event)"
+          oninput="autoResize(this)"
+        ></textarea>
+        <button class="chat-send" id="chat-send-btn" onclick="sendChat()">➤</button>
+      </div>
+    </div>
+
+    <div class="footer">DokuCoach · Österreich · Keine Rechtsberatung</div>
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let currentAnalysis = null;
+let currentNotionUrl = null;
+let chatHistory = [];
+let selectedFile = null;
+
+// ── HELPERS ──
+function show(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function setError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.toggle('show', !!msg);
+}
+
+function fmt(val) {
+  if (!val || val === 'null' || val === 'undefined') return '–';
+  return val;
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr || dateStr === 'null') return '–';
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('de-AT', { year: 'numeric', month: 'long', day: 'numeric' });
+  } catch { return dateStr; }
+}
+
+function categoryEmoji(kat) {
+  if (!kat) return '📄';
+  if (kat.includes('Versicherung')) return '🛡️';
+  if (kat.includes('Vertrag')) return '📋';
+  if (kat.includes('Behörde')) return '🏛️';
+  if (kat.includes('Finanzen')) return '💳';
+  return '📁';
+}
+
+// ── FILE HANDLING ──
+const fileInput = document.getElementById('file-input');
+const dropZone = document.getElementById('drop-zone');
+const fileNameEl = document.getElementById('file-name');
+const btnAnalyze = document.getElementById('btn-analyze');
+const emailInput = document.getElementById('email-input');
+
+function onFileSelected(file) {
+  if (!file || file.type !== 'application/pdf') {
+    setError('upload-error', 'Bitte wähle eine PDF-Datei aus.');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    setError('upload-error', 'Die Datei ist zu groß (max. 10 MB).');
+    return;
+  }
+  setError('upload-error', '');
+  selectedFile = file;
+  fileNameEl.textContent = '✓ ' + file.name;
+  fileNameEl.style.display = 'block';
+  checkReady();
+}
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) onFileSelected(fileInput.files[0]);
+});
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('drag-over');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f) onFileSelected(f);
+});
+
+emailInput.addEventListener('input', checkReady);
+
+function checkReady() {
+  const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
+  btnAnalyze.disabled = !(emailOk && selectedFile);
+}
+
+// ── ANALYSIS ──
+async function startAnalysis() {
+  setError('upload-error', '');
+  show('screen-loading');
+
+  // Animate steps
+  const steps = ['step-1','step-2','step-3','step-4'];
+  let stepIdx = 0;
+
+  function activateStep() {
+    if (stepIdx > 0) {
+      document.getElementById(steps[stepIdx - 1]).classList.add('done');
+      document.getElementById(steps[stepIdx - 1]).classList.remove('active');
+    }
+    if (stepIdx < steps.length) {
+      document.getElementById(steps[stepIdx]).classList.add('active');
+    }
+    stepIdx++;
+  }
+
+  activateStep(); // step 1 active immediately
+  const stepTimer = setInterval(() => {
+    if (stepIdx < steps.length) activateStep();
+    else clearInterval(stepTimer);
+  }, 5000);
+
+  try {
+    const formData = new FormData();
+    formData.append('email', emailInput.value.trim());
+    formData.append('pdf', selectedFile);
+
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      body: formData
+    });
+
+    clearInterval(stepTimer);
+
+    // Mark remaining steps done
+    steps.forEach(s => {
+      document.getElementById(s).classList.add('done');
+      document.getElementById(s).classList.remove('active');
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || `Server-Fehler (${response.status})`);
+    }
+
+    const data = await response.json();
+    currentAnalysis = data.analysis;
+    currentNotionUrl = data.notionUrl;
+    chatHistory = [];
+
+    renderResult();
+    show('screen-result');
+
+  } catch (err) {
+    console.error(err);
+    show('screen-upload');
+    setError('upload-error', '⚠️ Analyse fehlgeschlagen: ' + (err.message || 'Unbekannter Fehler. Bitte versuche es nochmal.'));
+  }
+}
+
+// ── RENDER RESULT ──
+function renderResult() {
+  const a = currentAnalysis;
+  const emoji = categoryEmoji(a.kategorie);
+
+  document.getElementById('res-emoji').textContent = emoji;
+  document.getElementById('res-name').textContent = fmt(a.name);
+  document.getElementById('res-provider').textContent = fmt(a.anbieter) + (a.kategorie ? ' · ' + a.kategorie : '');
+  document.getElementById('res-summary').textContent = fmt(a.zusammenfassung);
+  document.getElementById('res-kosten').textContent = a.monatliche_kosten ? '€ ' + Number(a.monatliche_kosten).toFixed(2) + ' / Monat' : '–';
+  document.getElementById('res-gueltig').textContent = fmtDate(a.gueltig_bis);
+  document.getElementById('res-typ').textContent = fmt(a.typ);
+  document.getElementById('res-klauseln').textContent = fmt(a.wichtige_klauseln);
+
+  // Notion link
+  if (currentNotionUrl) {
+    document.getElementById('res-notion-link').href = currentNotionUrl;
+    document.getElementById('res-notion-link').style.display = 'block';
+  } else {
+    document.getElementById('res-notion-link').style.display = 'none';
+  }
+
+  // Leistungen
+  const leistGrid = document.getElementById('res-leistungen');
+  leistGrid.innerHTML = '';
+  if (Array.isArray(a.was_du_hast)) {
+    a.was_du_hast.forEach(l => {
+      const card = document.createElement('div');
+      card.className = 'leistung-card';
+      card.innerHTML = `
+        <div class="leistung-dot ${l.status || 'ok'}"></div>
+        <div style="flex:1">
+          <div class="leistung-name">${l.name || ''}</div>
+          <div class="leistung-detail">${l.detail || ''}</div>
+        </div>
+        ${l.betrag ? `<div class="leistung-betrag">${l.betrag}</div>` : ''}
+      `;
+      leistGrid.appendChild(card);
+    });
+  }
+
+  // Was tun
+  const wasTunList = document.getElementById('res-was-tun');
+  const wasTunLabel = document.getElementById('was-tun-label');
+  wasTunList.innerHTML = '';
+  if (Array.isArray(a.was_tun) && a.was_tun.length > 0) {
+    wasTunLabel.style.display = 'block';
+    a.was_tun.forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'was-tun-item';
+      el.innerHTML = `
+        <div class="wt-nr">${item.nr || '!'}</div>
+        <div>
+          <div class="wt-title">${item.titel || ''}</div>
+          <div class="wt-detail">${item.detail || ''}</div>
+        </div>
+      `;
+      wasTunList.appendChild(el);
+    });
+  } else {
+    wasTunLabel.style.display = 'none';
+  }
+
+  // Chat doc bar
+  document.getElementById('chat-doc-icon').textContent = emoji;
+  document.getElementById('chat-doc-name').textContent = fmt(a.name);
+  document.getElementById('chat-doc-type').textContent = fmt(a.anbieter) + (a.kategorie ? ' · ' + a.kategorie : '');
+}
+
+// ── CHAT ──
+function showChat() {
+  document.getElementById('chat-messages').innerHTML = `
+    <div class="msg assistant">
+      Hallo! Ich habe dein Dokument <strong>${currentAnalysis?.name || 'Dokument'}</strong> analysiert. Was möchtest du wissen? 😊
+    </div>
+  `;
+  chatHistory = [];
+  show('screen-chat');
+}
+
+function showResult() {
+  show('screen-result');
+}
+
+function resetToUpload() {
+  selectedFile = null;
+  currentAnalysis = null;
+  currentNotionUrl = null;
+  chatHistory = [];
+  document.getElementById('file-input').value = '';
+  document.getElementById('file-name').style.display = 'none';
+  document.getElementById('file-name').textContent = '';
+  document.getElementById('email-input').value = '';
+  document.getElementById('btn-analyze').disabled = true;
+  setError('upload-error', '');
+  // Reset loading steps
+  ['step-1','step-2','step-3','step-4'].forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active', 'done');
+  });
+  show('screen-upload');
+}
+
+function sendSuggestion(el) {
+  document.getElementById('chat-input').value = el.textContent;
+  document.getElementById('chat-suggestions').style.display = 'none';
+  sendChat();
+}
+
+function handleChatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChat();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+function appendMsg(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('chat-send-btn');
+  const text = input.value.trim();
+  if (!text || !currentAnalysis) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  btn.disabled = true;
+
+  appendMsg('user', text);
+  const typingDiv = appendMsg('typing', '…');
+
+  chatHistory.push({ role: 'user', content: text });
+
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        analysis: currentAnalysis,
+        history: chatHistory.slice(0, -1) // exclude current message (sent separately)
+      })
+    });
+
+    if (!res.ok) throw new Error('Server-Fehler');
+    const data = await res.json();
+    const reply = data.reply || '(Keine Antwort)';
+
+    typingDiv.remove();
+    appendMsg('assistant', reply);
+    chatHistory.push({ role: 'assistant', content: reply });
+
+  } catch (err) {
+    typingDiv.textContent = '⚠️ Fehler: ' + err.message;
+    typingDiv.className = 'msg assistant';
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+</script>
+</body>
+</html>

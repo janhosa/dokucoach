@@ -1,0 +1,9 @@
+{
+  "name": "dokucoach-poc",
+  "version": "1.0.0",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "@notionhq/client": "^2.2.15",
+    "formidable": "^3.5.1"
+  }
+}
