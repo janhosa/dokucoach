@@ -1251,7 +1251,7 @@ function renderResult() {
   document.getElementById('res-kosten').textContent = a.monatliche_kosten ? '€ ' + Number(a.monatliche_kosten).toFixed(2) + ' / Monat' : '–';
   document.getElementById('res-gueltig').textContent = fmtDate(a.gueltig_bis);
   document.getElementById('res-typ').textContent = fmt(a.typ);
-  document.getElementById('res-klauseln').textContent = fmt(a.wichtige_klauseln);
+
 
   if (currentNotionUrl) {
     const link = document.getElementById('res-notion-link');
