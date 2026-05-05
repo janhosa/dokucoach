@@ -424,22 +424,12 @@ html, body {
 
 /* TL;DR Card */
 .tldr-card {
-  background: linear-gradient(135deg, #1a1a18 0%, #2a1e18 100%);
+  background: var(--card);
   border-radius: 16px;
   padding: 20px 20px 18px;
   margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-}
-
-.tldr-card::before {
-  content: '';
-  position: absolute;
-  top: -30px; right: -30px;
-  width: 120px; height: 120px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(200,64,26,0.3) 0%, transparent 70%);
-  pointer-events: none;
+  border-left: 4px solid var(--accent);
+  box-shadow: 0 2px 16px rgba(200,64,26,0.08), 0 1px 4px rgba(0,0,0,0.05);
 }
 
 .tldr-label {
@@ -454,7 +444,7 @@ html, body {
 
 .tldr-summary {
   font-size: 14px;
-  color: rgba(245,242,235,0.88);
+  color: var(--ink);
   line-height: 1.65;
   margin-bottom: 14px;
   font-weight: 400;
@@ -462,7 +452,7 @@ html, body {
 
 .tldr-divider {
   height: 1px;
-  background: rgba(255,255,255,0.08);
+  background: var(--soft);
   margin-bottom: 14px;
 }
 
@@ -485,13 +475,13 @@ html, body {
 .tldr-action-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(245,242,235,0.95);
+  color: var(--ink);
   margin-bottom: 2px;
 }
 
 .tldr-action-detail {
   font-size: 12px;
-  color: rgba(245,242,235,0.55);
+  color: var(--muted);
   line-height: 1.4;
 }
 
@@ -791,6 +781,81 @@ html, body {
 .chat-send:hover { opacity: 0.85; }
 .chat-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* Kontakt & Schaden Block */
+.kontakt-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.kontakt-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border-radius: 12px;
+  padding: 13px 16px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.kontakt-item:hover { background: var(--soft); }
+
+.kontakt-icon {
+  font-size: 16px;
+  width: 32px; height: 32px;
+  background: var(--accent-light);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.kontakt-label { font-size: 11px; color: var(--muted); margin-bottom: 1px; }
+.kontakt-val { font-size: 13px; font-weight: 500; color: var(--ink); }
+
+.kontakt-item.schaden { border: 1.5px solid rgba(200,64,26,0.25); }
+.kontakt-item.schaden .kontakt-icon { background: var(--accent-light); }
+.kontakt-item.schaden .kontakt-val { color: var(--accent); }
+
+.schaden-checklist {
+  background: var(--warn-bg);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+}
+
+.schaden-checklist-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--warn-fg);
+  margin-bottom: 10px;
+}
+
+.schaden-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink);
+  margin-bottom: 7px;
+  line-height: 1.4;
+}
+
+.schaden-step:last-child { margin-bottom: 0; }
+
+.schaden-step-nr {
+  width: 18px; height: 18px;
+  background: var(--warn-fg);
+  color: white;
+  border-radius: 50%;
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+
 /* ── FOOTER ── */
 .footer {
   padding: 16px 28px;
@@ -974,8 +1039,8 @@ html, body {
           <div class="section-label" id="was-tun-label" style="display:none">Weitere Maßnahmen</div>
           <div class="was-tun-list" id="res-was-tun"></div>
 
-          <div class="section-label">Wichtige Klauseln</div>
-          <div class="summary-text" id="res-klauseln" style="font-size:13px; color:var(--muted)">–</div>
+          <div class="section-label">Im Schadensfall</div>
+          <div id="res-kontakt-block"></div>
 
         </div>
 
@@ -1253,6 +1318,63 @@ function renderResult() {
   } else {
     wasTunLabel.style.display = 'none';
   }
+
+  // Kontakt & Schaden
+  const kontaktBlock = document.getElementById('res-kontakt-block');
+  kontaktBlock.innerHTML = '';
+
+  // Standard Schadensfall-Checkliste
+  const checklist = document.createElement('div');
+  checklist.className = 'schaden-checklist';
+  checklist.innerHTML = `
+    <div class="schaden-checklist-title">Im Schadensfall – Sofortmaßnahmen</div>
+    <div class="schaden-step"><div class="schaden-step-nr">1</div><span>Fotos vom Schaden und der Unfallstelle machen</span></div>
+    <div class="schaden-step"><div class="schaden-step-nr">2</div><span>Personaldaten aller Beteiligten & Zeugen notieren</span></div>
+    <div class="schaden-step"><div class="schaden-step-nr">3</div><span>Nichts unterschreiben, keinen Fehler zugeben</span></div>
+    <div class="schaden-step"><div class="schaden-step-nr">4</div><span>Schaden so schnell wie möglich dem Versicherer melden</span></div>
+  `;
+  kontaktBlock.appendChild(checklist);
+
+  const grid = document.createElement('div');
+  grid.className = 'kontakt-grid';
+
+  // Kontaktdaten aus Analyse (falls vorhanden)
+  const k = a.kontakt || {};
+
+  if (k.schaden_url) {
+    grid.innerHTML += `<a class="kontakt-item schaden" href="${k.schaden_url}" target="_blank" rel="noopener">
+      <div class="kontakt-icon">🚨</div>
+      <div><div class="kontakt-label">Online-Schadensmeldung</div><div class="kontakt-val">Schaden jetzt melden →</div></div>
+    </a>`;
+  }
+  if (k.telefon) {
+    grid.innerHTML += `<a class="kontakt-item" href="tel:${k.telefon.replace(/\s/g,'')}">
+      <div class="kontakt-icon">📞</div>
+      <div><div class="kontakt-label">Hotline</div><div class="kontakt-val">${k.telefon}</div></div>
+    </a>`;
+  }
+  if (k.email) {
+    grid.innerHTML += `<a class="kontakt-item" href="mailto:${k.email}">
+      <div class="kontakt-icon">✉️</div>
+      <div><div class="kontakt-label">E-Mail</div><div class="kontakt-val">${k.email}</div></div>
+    </a>`;
+  }
+  if (k.website) {
+    grid.innerHTML += `<a class="kontakt-item" href="${k.website}" target="_blank" rel="noopener">
+      <div class="kontakt-icon">🌐</div>
+      <div><div class="kontakt-label">Website</div><div class="kontakt-val">${k.website.replace(/^https?:\/\//, '')}</div></div>
+    </a>`;
+  }
+
+  // Fallback wenn kein Kontakt extrahiert wurde
+  if (!k.schaden_url && !k.telefon && !k.email) {
+    grid.innerHTML += `<div class="kontakt-item">
+      <div class="kontakt-icon">💡</div>
+      <div><div class="kontakt-label">Tipp</div><div class="kontakt-val" style="font-size:12px;font-weight:400;color:var(--muted)">Kontaktdaten findest du auf deiner Polizze oder der Website deines Versicherers.</div></div>
+    </div>`;
+  }
+
+  kontaktBlock.appendChild(grid);
 
   // Chat doc bar
   document.getElementById('chat-doc-icon').textContent = emoji;
