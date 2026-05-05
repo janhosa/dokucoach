@@ -68,7 +68,7 @@ module.exports = async function handler(req, res) {
     const anthropic = new Anthropic.default({ apiKey: process.env.ANTHROPIC_API_KEY });
     const message = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 4096,
       messages: [{
         role: 'user',
         content: [
@@ -78,11 +78,23 @@ module.exports = async function handler(req, res) {
       }]
     });
 
-    // JSON parsen
+    // JSON parsen – robust gegen trailing commas und Sonderzeichen
     const raw = message.content[0].text;
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) throw new Error('Keine JSON-Antwort von Claude erhalten');
-    const analysis = JSON.parse(match[0]);
+
+    let jsonStr = match[0];
+    // Trailing commas vor ] oder } entfernen (häufiger Claude-Fehler)
+    jsonStr = jsonStr.replace(/,(\s*[}\]])/g, '$1');
+
+    let analysis;
+    try {
+      analysis = JSON.parse(jsonStr);
+    } catch (parseErr) {
+      console.error('JSON parse error:', parseErr.message);
+      console.error('Raw response length:', raw.length);
+      throw new Error('Claude-Antwort konnte nicht verarbeitet werden. Bitte nochmal versuchen.');
+    }
 
     // Notion-Eintrag anlegen
     const notion = new Client({ auth: process.env.NOTION_TOKEN });
