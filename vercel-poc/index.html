@@ -1044,10 +1044,6 @@ html, body {
 
         </div>
 
-        <a class="notion-link" id="res-notion-link" href="#" target="_blank" rel="noopener" style="display:none">
-          📁 In Notion öffnen →
-        </a>
-
         <button class="btn-chat" onclick="showChat()">💬 Fragen stellen</button>
         <button class="btn-new" onclick="resetToStart()">Weiteres Dokument analysieren</button>
       </div>
@@ -1252,12 +1248,6 @@ function renderResult() {
   document.getElementById('res-gueltig').textContent = fmtDate(a.gueltig_bis);
   document.getElementById('res-typ').textContent = fmt(a.typ);
 
-
-  if (currentNotionUrl) {
-    const link = document.getElementById('res-notion-link');
-    link.href = currentNotionUrl;
-    link.style.display = 'block';
-  }
 
   // TL;DR Card – Zusammenfassung + wichtigste Handlung
   document.getElementById('res-summary').textContent = fmt(a.zusammenfassung);
