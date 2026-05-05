@@ -15,6 +15,11 @@ WICHTIGE REGELN:
 - Monatliche Kosten = Gesamtjahreskosten / 12 (inkl. aller Steuern/Gebühren)
 - Österreichisches Recht und Versicherungspraxis anwenden
 
+REGELN FÜR was_tun (KRITISCH):
+- KEINE abgelaufenen Fristen aufnehmen (z.B. Rücktrittsrecht nach 14 Tagen wenn Polizze längst ausgestellt wurde)
+- Sortierung: 1. Laufende Risiken/Besonderheiten die der Nutzer kennen MUSS (z.B. Einschränkungen, Selbstbehalte, wichtige Ausschlüsse), 2. Bevorstehende Termine (Verlängerung, Prämienanpassung), 3. Empfehlungen
+- Maximal 4 Punkte, konkret und umsetzbar
+
 Antworte NUR mit validem JSON, kein Text davor oder danach:
 {
   "name": "Kurzer Dokumentname",
@@ -24,7 +29,12 @@ Antworte NUR mit validem JSON, kein Text davor oder danach:
   "zusammenfassung": "2-3 Sätze: Was ist das, was schützt/regelt es?",
   "monatliche_kosten": 0.00,
   "gueltig_bis": "YYYY-MM-DD oder null",
-  "wichtige_klauseln": "Kernpunkte: Summen, Selbstbehalt, Ausschlüsse, Besonderheiten",
+  "kontakt": {
+    "telefon": "Hotline-Nummer aus dem Dokument oder null",
+    "email": "Kontakt-E-Mail aus dem Dokument oder null",
+    "website": "https://... oder null",
+    "schaden_url": "Direkte URL zur Online-Schadensmeldung falls im Dokument erwähnt, sonst null"
+  },
   "was_du_hast": [
     { "name": "Leistung", "detail": "Erklärung", "betrag": "€ X.XXX", "status": "ok" }
   ],
@@ -93,33 +103,39 @@ module.exports = async function handler(req, res) {
     } catch (parseErr) {
       console.error('JSON parse error:', parseErr.message);
       console.error('Raw response length:', raw.length);
+      console.error('JSON snippet around error:', jsonStr.substring(Math.max(0, (parseErr.message.match(/position (\d+)/) || [0,0])[1] - 100), parseInt((parseErr.message.match(/position (\d+)/) || [0,500])[1]) + 100));
       throw new Error('Claude-Antwort konnte nicht verarbeitet werden. Bitte nochmal versuchen.');
     }
 
-    // Notion-Eintrag anlegen
-    const notion = new Client({ auth: process.env.NOTION_TOKEN });
-    const today = new Date().toISOString().split('T')[0];
+    // Notion-Eintrag anlegen (optional – Fehler blockieren nicht die Analyse)
+    let notionUrl = null;
+    try {
+      const notion = new Client({ auth: process.env.NOTION_TOKEN });
+      const today = new Date().toISOString().split('T')[0];
 
-    const props = {
-      'Dokument':          { title: [{ text: { content: analysis.name || 'Unbenannt' } }] },
-      'Anbieter':          { rich_text: [{ text: { content: analysis.anbieter || '' } }] },
-      'Status':            { select: { name: '✅ Analysiert' } },
-      'Wichtige Klauseln': { rich_text: [{ text: { content: (analysis.wichtige_klauseln || '').slice(0, 2000) } }] },
-      'User':              { email: email },
-      'Analysiert am':     { date: { start: today } }
-    };
+      const props = {
+        'Dokument':      { title: [{ text: { content: analysis.name || 'Unbenannt' } }] },
+        'Anbieter':      { rich_text: [{ text: { content: analysis.anbieter || '' } }] },
+        'Status':        { select: { name: '✅ Analysiert' } },
+        'User':          { email: email },
+        'Analysiert am': { date: { start: today } }
+      };
 
-    if (analysis.kategorie) props['Kategorie'] = { select: { name: analysis.kategorie } };
-    if (analysis.typ)       props['Typ']       = { select: { name: analysis.typ } };
-    if (analysis.monatliche_kosten > 0) props['Monatliche Kosten'] = { number: analysis.monatliche_kosten };
-    if (analysis.gueltig_bis) props['Gültig bis'] = { date: { start: analysis.gueltig_bis } };
+      if (analysis.kategorie) props['Kategorie'] = { select: { name: analysis.kategorie } };
+      if (analysis.typ)       props['Typ']       = { select: { name: analysis.typ } };
+      if (analysis.monatliche_kosten > 0) props['Monatliche Kosten'] = { number: analysis.monatliche_kosten };
+      if (analysis.gueltig_bis) props['Gültig bis'] = { date: { start: analysis.gueltig_bis } };
 
-    const page = await notion.pages.create({
-      parent: { database_id: NOTION_DB_ID },
-      properties: props
-    });
+      const page = await notion.pages.create({
+        parent: { database_id: NOTION_DB_ID },
+        properties: props
+      });
+      notionUrl = page.url;
+    } catch (notionErr) {
+      console.error('Notion write failed (non-blocking):', notionErr.message);
+    }
 
-    return res.status(200).json({ success: true, notionUrl: page.url, analysis });
+    return res.status(200).json({ success: true, notionUrl, analysis });
 
   } catch (err) {
     console.error('analyze error:', err);
