@@ -422,6 +422,114 @@ html, body {
 /* ── SCREEN 3: RESULT ── */
 .result-screen { padding: 28px; }
 
+/* TL;DR Card */
+.tldr-card {
+  background: linear-gradient(135deg, #1a1a18 0%, #2a1e18 100%);
+  border-radius: 16px;
+  padding: 20px 20px 18px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.tldr-card::before {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(200,64,26,0.3) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.tldr-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.tldr-summary {
+  font-size: 14px;
+  color: rgba(245,242,235,0.88);
+  line-height: 1.65;
+  margin-bottom: 14px;
+  font-weight: 400;
+}
+
+.tldr-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.08);
+  margin-bottom: 14px;
+}
+
+.tldr-action {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tldr-action-nr {
+  width: 22px; height: 22px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  font-size: 11px; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+
+.tldr-action-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(245,242,235,0.95);
+  margin-bottom: 2px;
+}
+
+.tldr-action-detail {
+  font-size: 12px;
+  color: rgba(245,242,235,0.55);
+  line-height: 1.4;
+}
+
+/* Detail toggle */
+.details-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 12px 0 10px;
+  border-top: 1px solid var(--soft);
+  margin-bottom: 0;
+  user-select: none;
+}
+
+.details-toggle-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.details-toggle-icon {
+  font-size: 12px;
+  color: var(--muted);
+  transition: transform 0.25s;
+}
+
+.details-toggle-icon.open { transform: rotate(180deg); }
+
+.details-body {
+  display: none;
+  padding-top: 14px;
+}
+
+.details-body.open { display: block; }
+
 .result-doc-meta {
   display: flex;
   gap: 12px;
@@ -549,15 +657,17 @@ html, body {
 
 .btn-chat {
   width: 100%; padding: 16px;
-  background: var(--ink); color: white;
+  background: var(--accent); color: white;
   border: none; border-radius: 14px;
   font-family: 'DM Sans', sans-serif;
   font-size: 15px; font-weight: 500;
-  cursor: pointer; transition: opacity 0.2s;
-  margin-top: 8px;
+  cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+  margin-top: 20px;
+  letter-spacing: 0.01em;
 }
 
-.btn-chat:hover { opacity: 0.85; }
+.btn-chat:hover { opacity: 0.9; }
+.btn-chat:active { transform: scale(0.98); }
 
 .btn-new {
   width: 100%; padding: 12px;
@@ -822,32 +932,52 @@ html, body {
           </div>
         </div>
 
-        <div class="section-label">Zusammenfassung</div>
-        <div class="summary-text" id="res-summary">–</div>
-
-        <div style="background: var(--card); border-radius: 12px; padding: 4px 16px; margin-bottom: 20px;">
-          <div class="meta-row">
-            <span class="meta-key">Monatliche Kosten</span>
-            <span class="meta-val" id="res-kosten">–</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-key">Gültig bis</span>
-            <span class="meta-val" id="res-gueltig">–</span>
-          </div>
-          <div class="meta-row">
-            <span class="meta-key">Typ</span>
-            <span class="meta-val" id="res-typ">–</span>
+        <!-- TL;DR CARD -->
+        <div class="tldr-card" id="res-tldr">
+          <span class="tldr-label">Auf einen Blick</span>
+          <div class="tldr-summary" id="res-summary">–</div>
+          <div class="tldr-divider" id="res-tldr-divider"></div>
+          <div class="tldr-action" id="res-tldr-action">
+            <div class="tldr-action-nr">1</div>
+            <div>
+              <div class="tldr-action-title" id="res-tldr-action-title">–</div>
+              <div class="tldr-action-detail" id="res-tldr-action-detail"></div>
+            </div>
           </div>
         </div>
 
-        <div class="section-label">Was du hast</div>
-        <div class="leistungen-grid" id="res-leistungen"></div>
+        <!-- DETAILS COLLAPSIBLE -->
+        <div class="details-toggle" onclick="toggleDetails(this)">
+          <span class="details-toggle-label">Details &amp; Leistungen</span>
+          <span class="details-toggle-icon">▼</span>
+        </div>
+        <div class="details-body" id="res-details-body">
 
-        <div class="section-label" id="was-tun-label" style="display:none">Was du tun solltest</div>
-        <div class="was-tun-list" id="res-was-tun"></div>
+          <div style="background: var(--card); border-radius: 12px; padding: 4px 16px; margin-bottom: 20px;">
+            <div class="meta-row">
+              <span class="meta-key">Monatliche Kosten</span>
+              <span class="meta-val" id="res-kosten">–</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Gültig bis</span>
+              <span class="meta-val" id="res-gueltig">–</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-key">Typ</span>
+              <span class="meta-val" id="res-typ">–</span>
+            </div>
+          </div>
 
-        <div class="section-label">Wichtige Klauseln</div>
-        <div class="summary-text" id="res-klauseln" style="font-size:13px; color:var(--muted)">–</div>
+          <div class="section-label">Was du hast</div>
+          <div class="leistungen-grid" id="res-leistungen"></div>
+
+          <div class="section-label" id="was-tun-label" style="display:none">Weitere Maßnahmen</div>
+          <div class="was-tun-list" id="res-was-tun"></div>
+
+          <div class="section-label">Wichtige Klauseln</div>
+          <div class="summary-text" id="res-klauseln" style="font-size:13px; color:var(--muted)">–</div>
+
+        </div>
 
         <a class="notion-link" id="res-notion-link" href="#" target="_blank" rel="noopener" style="display:none">
           📁 In Notion öffnen →
@@ -1053,7 +1183,6 @@ function renderResult() {
   document.getElementById('res-emoji').textContent = emoji;
   document.getElementById('res-name').textContent = fmt(a.name);
   document.getElementById('res-provider').textContent = fmt(a.anbieter) + (a.kategorie ? ' · ' + a.kategorie : '');
-  document.getElementById('res-summary').textContent = fmt(a.zusammenfassung);
   document.getElementById('res-kosten').textContent = a.monatliche_kosten ? '€ ' + Number(a.monatliche_kosten).toFixed(2) + ' / Monat' : '–';
   document.getElementById('res-gueltig').textContent = fmtDate(a.gueltig_bis);
   document.getElementById('res-typ').textContent = fmt(a.typ);
@@ -1064,6 +1193,24 @@ function renderResult() {
     link.href = currentNotionUrl;
     link.style.display = 'block';
   }
+
+  // TL;DR Card – Zusammenfassung + wichtigste Handlung
+  document.getElementById('res-summary').textContent = fmt(a.zusammenfassung);
+  const firstAction = Array.isArray(a.was_tun) && a.was_tun.length > 0 ? a.was_tun[0] : null;
+  if (firstAction) {
+    document.getElementById('res-tldr-action-title').textContent = firstAction.titel || '';
+    document.getElementById('res-tldr-action-detail').textContent = firstAction.detail || '';
+    document.getElementById('res-tldr-divider').style.display = 'block';
+    document.getElementById('res-tldr-action').style.display = 'flex';
+  } else {
+    document.getElementById('res-tldr-divider').style.display = 'none';
+    document.getElementById('res-tldr-action').style.display = 'none';
+  }
+
+  // Details: schließen beim neu rendern
+  document.getElementById('res-details-body').classList.remove('open');
+  const icon = document.querySelector('.details-toggle-icon');
+  if (icon) icon.classList.remove('open');
 
   // Leistungen – max 6
   const leistGrid = document.getElementById('res-leistungen');
@@ -1084,13 +1231,14 @@ function renderResult() {
     });
   }
 
-  // Was tun – max 3
+  // Was tun – item 0 ist in TL;DR, items 1+ hier
   const wasTunList = document.getElementById('res-was-tun');
   const wasTunLabel = document.getElementById('was-tun-label');
   wasTunList.innerHTML = '';
-  if (Array.isArray(a.was_tun) && a.was_tun.length > 0) {
+  const remainingActions = Array.isArray(a.was_tun) ? a.was_tun.slice(1, 3) : [];
+  if (remainingActions.length > 0) {
     wasTunLabel.style.display = 'block';
-    a.was_tun.slice(0, 3).forEach(item => {
+    remainingActions.forEach(item => {
       const el = document.createElement('div');
       el.className = 'was-tun-item';
       el.innerHTML = `
@@ -1110,6 +1258,13 @@ function renderResult() {
   document.getElementById('chat-doc-icon').textContent = emoji;
   document.getElementById('chat-doc-name').textContent = fmt(a.name);
   document.getElementById('chat-doc-type').textContent = fmt(a.anbieter) + (a.kategorie ? ' · ' + a.kategorie : '');
+}
+
+function toggleDetails(el) {
+  const body = document.getElementById('res-details-body');
+  const icon = el.querySelector('.details-toggle-icon');
+  const isOpen = body.classList.toggle('open');
+  icon.classList.toggle('open', isOpen);
 }
 
 // ── CHAT ──
