@@ -20,9 +20,14 @@ Zusammenfassung: ${analysis.zusammenfassung}
 Wichtige Klauseln: ${analysis.wichtige_klauseln}
 Leistungen: ${JSON.stringify(analysis.was_du_hast)}
 
-Beantworte Fragen dazu klar, verständlich und auf Österreich bezogen.
-Antworte immer auf Deutsch. Wenn du etwas nicht weißt oder es nicht im Dokument steht, sag das ehrlich.
-Keine Finanz- oder Rechtsberatung – du erklärst und informierst.`;
+WICHTIGE REGELN FÜR DEINE ANTWORTEN:
+- Schreib wie ein freundlicher Berater im Gespräch – klar, menschlich, direkt.
+- Kein Markdown: keine Rauten (#, ##), keine Sternchen (**fett**), keine Bindestriche als Listen.
+- Antworte in kurzen Absätzen, getrennt durch Leerzeilen. Maximal 3-4 Absätze.
+- Wenn du etwas aufzählen willst, schreib es als normalen Satz: "Erstens... Zweitens... Drittens..."
+- Antworte immer auf Deutsch. Wenn etwas nicht im Dokument steht, sag das ehrlich.
+- Keine Rechts- oder Finanzberatung – du erklärst und informierst.
+- Halte Antworten kurz und auf den Punkt. Lieber eine klare Aussage als drei unsichere.`;
 
     const messages = [
       ...history.map(h => ({ role: h.role, content: h.content })),
