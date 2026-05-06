@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback – DokuCoach Beta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a18;
+  --paper: #f5f2eb;
+  --accent: #c8401a;
+  --accent-light: #fceee9;
+  --soft: #e8e4da;
+  --muted: #5a5750;
+  --card: #ffffff;
+  --success: #2d7a4f;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 300;
+  background: #0e0e0d;
+  color: var(--ink);
+  min-height: 100%;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px 80px;
+  background: radial-gradient(ellipse at 30% 20%, rgba(200,64,26,0.10) 0%, transparent 55%),
+              radial-gradient(ellipse at 80% 70%, rgba(200,64,26,0.05) 0%, transparent 50%),
+              #0e0e0d;
+}
+
+.card {
+  width: 100%;
+  max-width: 560px;
+  background: var(--paper);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 8px 20px rgba(0,0,0,0.4);
+}
+
+.header {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 3px solid var(--accent);
+}
+
+.logo {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+}
+
+.logo span { color: var(--accent); }
+
+.beta-badge {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 20px;
+  padding: 3px 10px;
+  opacity: 0.7;
+}
+
+.survey-body { padding: 32px 28px 28px; }
+
+.survey-intro {
+  margin-bottom: 32px;
+}
+
+.survey-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  line-height: 1.15;
+  color: var(--ink);
+  margin-bottom: 10px;
+  letter-spacing: -0.02em;
+}
+
+.survey-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.question-block {
+  margin-bottom: 28px;
+}
+
+.question-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.45;
+  margin-bottom: 12px;
+  display: block;
+}
+
+.question-nr {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px; height: 20px;
+  background: var(--accent);
+  color: white;
+  border-radius: 50%;
+  font-size: 10px;
+  font-weight: 600;
+  margin-right: 8px;
+  flex-shrink: 0;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+.options { display: flex; flex-direction: column; gap: 8px; }
+
+.option-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--card);
+  border: 1.5px solid var(--soft);
+  border-radius: 12px;
+  padding: 13px 16px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.option-label:hover {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.option-label input[type="radio"],
+.option-label input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border: 2px solid #c8c4bc;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 1px;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.option-label input[type="checkbox"] {
+  border-radius: 5px;
+}
+
+.option-label input[type="radio"]:checked,
+.option-label input[type="checkbox"]:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.option-label input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: white;
+}
+
+.option-label input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.option-label.selected {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+
+.text-other {
+  display: none;
+  margin-top: 8px;
+}
+
+.text-other.show { display: block; }
+
+.form-input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--soft);
+  border-radius: 12px;
+  background: var(--card);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+  resize: vertical;
+  min-height: 48px;
+}
+
+.form-input:focus { border-color: var(--accent); }
+
+textarea.form-input {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.divider {
+  height: 1px;
+  background: var(--soft);
+  margin: 8px 0 28px;
+}
+
+.checkbox-block {
+  background: var(--accent-light);
+  border: 1.5px solid rgba(200,64,26,0.2);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 28px;
+}
+
+.checkbox-block .option-label {
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.checkbox-block .option-label:hover {
+  background: transparent;
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 17px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+
+.btn-submit:hover { opacity: 0.9; }
+.btn-submit:active { transform: scale(0.98); }
+.btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.privacy-note {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  margin-top: 14px;
+  line-height: 1.5;
+}
+
+/* Thank you screen */
+.thankyou {
+  display: none;
+  padding: 56px 28px;
+  text-align: center;
+}
+
+.thankyou.show { display: block; }
+.survey-body.hide { display: none; }
+
+.thankyou-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.thankyou-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 26px;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.thankyou-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.footer {
+  padding: 16px 28px;
+  border-top: 1px solid var(--soft);
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 560px) {
+  .app { padding: 0; }
+  .card { border-radius: 0; min-height: 100vh; box-shadow: none; }
+  .survey-body { padding: 24px 20px 28px; }
+  .header { padding: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+
+    <div class="header">
+      <div class="logo">Doku<span>Coach</span></div>
+      <div class="beta-badge">Beta 0.8</div>
+    </div>
+
+    <div class="survey-body" id="survey-body">
+      <div class="survey-intro">
+        <h1 class="survey-title">Wie war's?<br><em style="font-style:italic; color:var(--accent)">Dein Feedback zählt.</em></h1>
+        <p class="survey-sub">7 kurze Fragen — ca. 2 Minuten. Deine Antworten fließen direkt in die Weiterentwicklung ein.</p>
+      </div>
+
+      <!-- ACHTUNG: Ersetze die Formspree-URL durch deine eigene: https://formspree.io -->
+      <form id="survey-form" action="https://formspree.io/f/DEINE_FORM_ID" method="POST">
+
+        <!-- Frage 1 -->
+        <div class="question-block">
+          <span class="question-label"><span class="question-nr">1</span>Hast du das Tool ausprobiert und ein Dokument hochgeladen?</span>
+          <div class="options">
+            <label class="option-label">
+              <input type="radio" name="q1" value="Ja, hat geklappt" required> Ja, hat geklappt
+            </label>
+            <label class="option-label">
+              <input type="radio" name="q1" value="Ja, aber es gab Probleme"> Ja, aber es gab technische Probleme
+            </label>
+            <label class="option-label" id="q1-nein-label">
+              <input type="radio" name="q1" value="Nein" id="q1-nein"> Nein
+            </label>
+          </div>
+          <div class="text-other" id="q1-other">
+            <input type="text" class="form-input" name="q1_warum" placeholder="Warum nicht? (optional)">
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Frage 2 -->
+        <div class="question-block">
+          <span class="question-label"><span class="question-nr">2</span>War die Analyse verständlich und inhaltlich korrekt?</span>
+          <div class="options">
+            <label class="option-label">
+              <input type="radio" name="q2" value="Ja, sehr hilfreich"> Ja — ich habe etwas Neues über mein Dokument gelernt
+            </label>
+            <label class="option-label">
+              <input type="radio" name="q2" value="Teilweise"> Teilweise — Basics stimmten, Details fehlten oder waren falsch
+            </label>
+            <label class="option-label">
+              <input type="radio" name="q2" value="Nein, nicht überzeugend"> Nein — zu allgemein oder ich habe dem Ergebnis nicht vertraut
+            </label>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Frage 3 -->
+        <div class="question-block">
+          <span class="question-label"><span class="question-nr">3</span>Hast du danach Fragen an das Dokument gestellt (Chat)?</span>
+          <div class="options">
+            <label class="option-label">
+              <input type="radio" name="q3" value="Ja, gut"> Ja, und die Antworten waren gut
+            </label>
+            <label class="option-label">
+              <input type="radio" name="q3" value="Ja, nicht überzeugend"> Ja, aber die Antworten haben mich nicht überzeugt
+            </label>
+            <label class="option-label">
+              <input type="radio" name="q3" value="Nein"> Nein
+            </label>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Frage 4 -->
+        <div class="question-block">
+          <span class="question-label"><span class="question-nr">4</span>Welches Dokument hast du analysiert?</span>
+          <div class="options">
+            <label class="option-label">
+              <input type="radio" name="q4" value="KFZ-Versicherung"> KFZ-Versicherung
+            </label>
+            <label class="option-label">
+              <input type="radio" name="q4" value="Haushalts-/Eigenheimversicherung"> Haushalts- / Eigenheimversicherung
+            </label>
+            <label class="option-label">
+              <input type="radio" name="q4" value="Lebens-/Unfallversicherung"> Lebens- / Unfallversicherung
+            </label>
+            <label class="option-label">
+              <input type="radio" name="q4" value="Miet- oder Kaufvertrag"> Miet- oder Kaufvertrag
+            </label>
+            <label class="option-label" id="q4-anderes-label">
+              <input type="radio" name="q4" value="Anderes" id="q4-anderes"> Anderes
+            </label>
+          </div>
+          <div class="text-other" id="q4-other">
+            <input type="text" class="form-input" name="q4_anderes" placeholder="Welches Dokument?">
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Frage 5 -->
+        <div class="question-block">
+          <span class="question-label"><span class="question-nr">5</span>Würdest du das bei deinem nächsten unverstandenen Dokument wieder nutzen?</span>
+          <div class="options">
+            <label class="option-label">
+              <input type="radio" name="q5" value="Ja, erster Schritt"> Ja — das ist ab jetzt mein erster Schritt
+            </label>
+            <label class="option-label">
+              <input type="radio" name="q5" value="Wahrscheinlich"> Wahrscheinlich — wenn ich ein Dokument nicht verstehe
+            </label>
+            <label class="option-label" id="q5-nein-label">
+              <input type="radio" name="q5" value="Eher nicht" id="q5-nein"> Eher nicht
+            </label>
+          </div>
+          <div class="text-other" id="q5-other">
+            <input type="text" class="form-input" name="q5_warum" placeholder="Was bremst dich? (optional)">
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Frage 6 -->
+        <div class="question-block">
+          <span class="question-label"><span class="question-nr">6</span>Was hat dich überrascht — positiv oder negativ?</span>
+          <textarea class="form-input" name="q6" placeholder="Deine Antwort…"></textarea>
+        </div>
+
+        <!-- Frage 7 -->
+        <div class="question-block">
+          <span class="question-label"><span class="question-nr">7</span>Was würdest du dir noch wünschen — was fehlt oder sollte unbedingt dazukommen?</span>
+          <textarea class="form-input" name="q7" placeholder="Deine Wünsche, Ideen…"></textarea>
+        </div>
+
+        <!-- Checkbox: dabei bleiben -->
+        <div class="checkbox-block">
+          <label class="option-label">
+            <input type="checkbox" name="dabei_bleiben" value="Ja" checked>
+            <span>Ich würde gerne weiterhin Teil dieser Entwicklung sein.</span>
+          </label>
+        </div>
+
+        <input type="hidden" name="_subject" value="DokuCoach Feedback">
+        <input type="hidden" name="_next" value="">
+
+        <button type="submit" class="btn-submit" id="btn-submit">Feedback absenden →</button>
+        <p class="privacy-note">Deine Antworten werden vertraulich behandelt und nur für die Produktentwicklung verwendet.</p>
+
+      </form>
+    </div>
+
+    <!-- Thank You -->
+    <div class="thankyou" id="thankyou">
+      <div class="thankyou-icon">🙏</div>
+      <h2 class="thankyou-title">Danke — wirklich.</h2>
+      <p class="thankyou-sub">Dein Feedback landet direkt bei Jan und fließt in die nächste Version ein.<br><br>Du bist Teil davon.</p>
+    </div>
+
+    <div class="footer">DokuCoach · Österreich · Beta 0.8</div>
+  </div>
+</div>
+
+<script>
+// Radio styling
+document.querySelectorAll('.option-label input[type="radio"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    const name = radio.name;
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+      r.closest('.option-label').classList.toggle('selected', r.checked);
+    });
+  });
+});
+
+// Show "Warum nicht?" when Q1 = Nein
+document.getElementById('q1-nein').addEventListener('change', function() {
+  document.getElementById('q1-other').classList.toggle('show', this.checked);
+});
+
+// Show "Welches?" when Q4 = Anderes
+document.getElementById('q4-anderes').addEventListener('change', function() {
+  document.getElementById('q4-other').classList.toggle('show', this.checked);
+});
+
+// Show "Was bremst?" when Q5 = Eher nicht
+document.getElementById('q5-nein').addEventListener('change', function() {
+  document.getElementById('q5-other').classList.toggle('show', this.checked);
+});
+
+// Form submit → show thank you
+document.getElementById('survey-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'Wird gesendet…';
+
+  const formData = new FormData(this);
+
+  try {
+    const res = await fetch(this.action, {
+      method: 'POST',
+      body: formData,
+      headers: { 'Accept': 'application/json' }
+    });
+
+    if (res.ok) {
+      document.getElementById('survey-body').classList.add('hide');
+      document.getElementById('thankyou').classList.add('show');
+      window.scrollTo(0, 0);
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Feedback absenden →';
+      alert('Es gab einen Fehler. Bitte nochmal versuchen.');
+    }
+  } catch {
+    btn.disabled = false;
+    btn.textContent = 'Feedback absenden →';
+    alert('Keine Verbindung. Bitte nochmal versuchen.');
+  }
+});
+</script>
+</body>
+</html>
