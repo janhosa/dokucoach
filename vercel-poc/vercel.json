@@ -2,5 +2,10 @@
   "functions": {
     "api/analyze.js": { "maxDuration": 60 },
     "api/chat.js":    { "maxDuration": 30 }
-  }
+  },
+  "routes": [
+    { "src": "/survey", "dest": "/survey.html" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
