@@ -345,8 +345,13 @@ textarea.form-input {
         <p class="survey-sub">7 kurze Fragen — ca. 2 Minuten. Deine Antworten fließen direkt in die Weiterentwicklung ein.</p>
       </div>
 
-      <!-- ACHTUNG: Ersetze die Formspree-URL durch deine eigene: https://formspree.io -->
       <form id="survey-form" action="https://formspree.io/f/mykojlan" method="POST">
+
+        <!-- E-Mail -->
+        <div class="question-block">
+          <span class="question-label" style="font-weight:400; color:var(--muted); font-size:13px;">Deine E-Mail-Adresse <span style="font-size:11px;">(optional — nur wenn du Rückmeldung möchtest)</span></span>
+          <input type="email" name="email" class="form-input" placeholder="deine@email.at">
+        </div>
 
         <!-- Frage 1 -->
         <div class="question-block">
@@ -474,7 +479,7 @@ textarea.form-input {
         </div>
 
         <input type="hidden" name="_subject" value="DokuCoach Feedback">
-        <input type="hidden" name="_next" value="">
+        <input type="hidden" name="_next" value="https://dokucoach-blkqytddv-janhosa1972-7505s-projects.vercel.app/survey.html?sent=1">
 
         <button type="submit" class="btn-submit" id="btn-submit">Feedback absenden →</button>
         <p class="privacy-note">Deine Antworten werden vertraulich behandelt und nur für die Produktentwicklung verwendet.</p>
@@ -494,6 +499,13 @@ textarea.form-input {
 </div>
 
 <script>
+// Danke-Screen wenn ?sent=1 in URL
+if (new URLSearchParams(window.location.search).get('sent') === '1') {
+  document.getElementById('survey-body').classList.add('hide');
+  document.getElementById('thankyou').classList.add('show');
+  window.scrollTo(0, 0);
+}
+
 // Radio styling
 document.querySelectorAll('.option-label input[type="radio"]').forEach(radio => {
   radio.addEventListener('change', () => {
@@ -517,38 +529,6 @@ document.getElementById('q4-anderes').addEventListener('change', function() {
 // Show "Was bremst?" when Q5 = Eher nicht
 document.getElementById('q5-nein').addEventListener('change', function() {
   document.getElementById('q5-other').classList.toggle('show', this.checked);
-});
-
-// Form submit → show thank you
-document.getElementById('survey-form').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btn-submit');
-  btn.disabled = true;
-  btn.textContent = 'Wird gesendet…';
-
-  const formData = new FormData(this);
-
-  try {
-    const res = await fetch(this.action, {
-      method: 'POST',
-      body: formData,
-      headers: { 'Accept': 'application/json' }
-    });
-
-    if (res.ok) {
-      document.getElementById('survey-body').classList.add('hide');
-      document.getElementById('thankyou').classList.add('show');
-      window.scrollTo(0, 0);
-    } else {
-      btn.disabled = false;
-      btn.textContent = 'Feedback absenden →';
-      alert('Es gab einen Fehler. Bitte nochmal versuchen.');
-    }
-  } catch {
-    btn.disabled = false;
-    btn.textContent = 'Feedback absenden →';
-    alert('Keine Verbindung. Bitte nochmal versuchen.');
-  }
 });
 </script>
 </body>
